@@ -325,9 +325,10 @@ function spawnFirework() {
 // Update countdown display
 function updateCountdown() {
     const now = new Date();
-    const newYear = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
+    // Hardcode countdown to 2026 for the New Year's Eve 2025 game
+    const newYear = new Date(2026, 0, 1, 0, 0, 0);
     
-    // If it's already past midnight on Dec 31st, set to next year
+    // If it's already past midnight on Dec 31st 2025
     if (now >= newYear) {
         document.getElementById('countdown-timer').textContent = "🎉 HAPPY 2026! 🎉";
         return;

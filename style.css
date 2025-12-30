@@ -102,9 +102,9 @@ body {
     margin-bottom: 10px;
     background: linear-gradient(45deg, #ff6b6b, #ffd93d, #6bcf63, #4d96ff, #ff6b6b);
     background-size: 300% 300%;
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
     animation: rainbow 3s ease infinite;
     text-shadow: none;
 }

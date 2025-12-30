@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎆 New Year's Eve 2025 - Fireworks Frenzy! 🎆</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="ui-overlay">
+            <div id="score-display">
+                <span id="score">0</span> 🎯
+            </div>
+            <div id="countdown-display">
+                <div id="countdown-label">Countdown to 2026!</div>
+                <div id="countdown-timer">00:00:00</div>
+            </div>
+            <div id="combo-display">
+                <span id="combo">x1</span> 🔥
+            </div>
+        </div>
+        <div id="start-screen">
+            <h1>🎆 FIREWORKS FRENZY 🎆</h1>
+            <h2>New Year's Eve 2025</h2>
+            <p>Pop the fireworks before they explode!</p>
+            <p>Chain combos for massive points!</p>
+            <button id="start-btn">🚀 START THE PARTY! 🚀</button>
+            <div id="instructions">
+                <p>🖱️ Click or tap fireworks to pop them!</p>
+                <p>⚡ Chain pops for combo multipliers!</p>
+                <p>💎 Golden fireworks = 10x points!</p>
+            </div>
+        </div>
+        <div id="celebration-overlay" class="hidden">
+            <h1>🎉 HAPPY NEW YEAR 2026! 🎉</h1>
+            <div id="final-score"></div>
+            <button id="restart-btn">🔄 Play Again!</button>
+        </div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>

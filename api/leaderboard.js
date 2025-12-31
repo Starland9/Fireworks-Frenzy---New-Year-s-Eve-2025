@@ -83,12 +83,14 @@ async function updateLeaderboard(leaderboard) {
 // Validate and sanitize player name
 function sanitizePlayerName(name) {
     if (typeof name !== 'string') return null;
-    // Remove any HTML/script tags and limit length
+    
+    // Only allow alphanumeric characters, spaces, underscores, and hyphens
+    // This is a strict allowlist approach that prevents all injection attacks
     const sanitized = name
-        .replace(/<[^>]*>/g, '')
-        .replace(/[<>\"'&]/g, '')
+        .replace(/[^a-zA-Z0-9\s_\-]/g, '')
         .trim()
         .slice(0, 20);
+    
     return sanitized.length >= 1 ? sanitized : null;
 }
 
@@ -149,7 +151,7 @@ export default async function handler(request) {
                 playerName,
                 score,
                 timestamp: new Date().toISOString(),
-                id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             };
             
             leaderboard.push(newEntry);

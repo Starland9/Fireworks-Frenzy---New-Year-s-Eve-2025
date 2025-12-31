@@ -17,21 +17,33 @@
                 <div id="countdown-label">Countdown to 2026!</div>
                 <div id="countdown-timer">00:00:00</div>
             </div>
-            <div id="combo-display">
-                <span id="combo">x1</span> 🔥
+            <div id="right-panel">
+                <div id="lives-display">❤️❤️❤️</div>
+                <div id="combo-display">
+                    <span id="combo">x1</span> 🔥
+                </div>
             </div>
         </div>
         <div id="start-screen">
             <h1>🎆 FIREWORKS FRENZY 🎆</h1>
             <h2>New Year's Eve 2025</h2>
+            <div id="high-score-display">
+                🏆 Best Score: <span id="high-score">0</span>
+            </div>
             <p>Pop the fireworks before they explode!</p>
-            <p>Chain combos for massive points!</p>
+            <p>You have 3 lives - don't let them run out!</p>
             <button id="start-btn">🚀 START THE PARTY! 🚀</button>
+            <div id="continue-section">
+                <div id="saved-score-display" class="hidden"></div>
+                <button id="continue-btn" class="hidden">▶️ CONTINUE GAME</button>
+            </div>
             <div id="instructions">
                 <p>🖱️ Click or tap fireworks to pop them!</p>
                 <p>⚡ Chain pops for combo multipliers!</p>
                 <p>💎 Golden fireworks = 10x points!</p>
-                <p>💀 AVOID the bombs - they cost you points!</p>
+                <p>💀 AVOID the bombs - they cost you a life!</p>
+                <p>💨 Miss a firework = lose a life!</p>
+                <p class="powerup-info">✨ Power-ups: 💚 +Life | 🛡️ Shield | ⏰ Time Freeze | 💥 Multi-Pop</p>
             </div>
         </div>
         <div id="celebration-overlay" class="hidden">
@@ -46,6 +58,20 @@
                 <div id="submit-status" class="hidden"></div>
             </div>
             <button id="restart-btn">🔄 Play Again!</button>
+        </div>
+        
+        <div id="game-over-overlay" class="hidden">
+            <h1>💀 GAME OVER 💀</h1>
+            <div id="game-over-score"></div>
+            <div id="game-over-submit-section">
+                <p>Submit your score to the leaderboard!</p>
+                <div id="game-over-input-container">
+                    <input type="text" id="game-over-player-name" placeholder="Enter your name" maxlength="20" />
+                    <button id="game-over-submit-btn">🏆 Submit Score</button>
+                </div>
+                <div id="game-over-submit-status" class="hidden"></div>
+            </div>
+            <button id="game-over-restart-btn">🔄 Try Again!</button>
         </div>
         
         <div id="leaderboard-panel" class="hidden">

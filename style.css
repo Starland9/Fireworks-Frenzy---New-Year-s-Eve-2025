@@ -46,6 +46,22 @@ body {
     animation: pulse 2s infinite;
 }
 
+#right-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+#lives-display {
+    background: rgba(0, 0, 0, 0.6);
+    padding: 10px 20px;
+    border-radius: 15px;
+    font-size: 24px;
+    border: 2px solid rgba(255, 100, 100, 0.5);
+    letter-spacing: 5px;
+}
+
 #countdown-display {
     background: rgba(0, 0, 0, 0.7);
     padding: 15px 30px;
@@ -81,7 +97,7 @@ body {
     50% { transform: scale(1.05); }
 }
 
-#start-screen, #celebration-overlay {
+#start-screen, #celebration-overlay, #game-over-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -166,6 +182,59 @@ body {
     margin: 8px 0;
 }
 
+/* High Score Display */
+#high-score-display {
+    font-size: 1.5em;
+    color: #ffd700;
+    margin-bottom: 20px;
+    padding: 10px 25px;
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 215, 0, 0.4);
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+#high-score {
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+/* Continue Section */
+#continue-section {
+    margin-top: 15px;
+}
+
+#saved-score-display {
+    color: #7fff7f;
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    text-shadow: 0 0 10px rgba(127, 255, 127, 0.5);
+}
+
+#continue-btn {
+    padding: 15px 40px;
+    font-size: 1.4em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#continue-btn:hover {
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 12px 35px rgba(76, 175, 80, 0.6);
+}
+
+#continue-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
 .hidden {
     display: none !important;
 }
@@ -186,6 +255,137 @@ body {
     margin: 30px 0;
     color: #ffd93d;
     text-shadow: 0 0 20px rgba(255, 217, 61, 0.5);
+}
+
+/* Game Over Overlay */
+#game-over-overlay {
+    background: rgba(20, 0, 0, 0.92);
+}
+
+#game-over-overlay h1 {
+    font-size: 4em;
+    color: #ff3333;
+    text-shadow: 0 0 30px rgba(255, 0, 0, 0.8);
+    animation: game-over-pulse 0.5s ease infinite alternate;
+}
+
+@keyframes game-over-pulse {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.05); }
+}
+
+#game-over-score {
+    font-size: 2.5em;
+    margin: 20px 0;
+    color: #ffd93d;
+    text-shadow: 0 0 15px rgba(255, 217, 61, 0.5);
+}
+
+#game-over-submit-section {
+    margin: 20px 0;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 100, 100, 0.3);
+}
+
+#game-over-submit-section p {
+    margin: 0 0 15px 0;
+    color: #ddd;
+    font-size: 1.1em;
+}
+
+#game-over-input-container {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+#game-over-player-name {
+    padding: 12px 20px;
+    font-size: 1.1em;
+    border: 2px solid rgba(255, 100, 100, 0.5);
+    border-radius: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    outline: none;
+    width: 200px;
+    transition: border-color 0.3s;
+}
+
+#game-over-player-name:focus {
+    border-color: #ff6666;
+}
+
+#game-over-submit-btn {
+    padding: 12px 25px;
+    font-size: 1.1em;
+    font-weight: bold;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #fff;
+}
+
+#game-over-submit-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+}
+
+#game-over-submit-btn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#game-over-submit-status {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+#game-over-submit-status.success {
+    background: rgba(0, 200, 0, 0.2);
+    border: 1px solid rgba(0, 200, 0, 0.5);
+    color: #4caf50;
+}
+
+#game-over-submit-status.error {
+    background: rgba(200, 0, 0, 0.2);
+    border: 1px solid rgba(200, 0, 0, 0.5);
+    color: #f44336;
+}
+
+#game-over-restart-btn {
+    margin-top: 20px;
+    padding: 18px 45px;
+    font-size: 1.6em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(255, 107, 107, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+#game-over-restart-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(255, 107, 107, 0.6);
+}
+
+/* Power-up info */
+.powerup-info {
+    color: #aaffaa !important;
+    font-size: 0.95em !important;
+    margin-top: 10px !important;
 }
 
 /* Leaderboard Panel */
@@ -399,54 +599,98 @@ body {
     color: #f44336;
 }
 
-/* Mobile responsiveness */
+/* Mobile responsiveness - reduced by 0.7 factor */
 @media (max-width: 768px) {
     #start-screen h1 {
-        font-size: 2.5em;
+        font-size: 1.8em;
     }
     
     #start-screen h2 {
-        font-size: 1.5em;
+        font-size: 1.1em;
+    }
+    
+    #start-screen p {
+        font-size: 0.9em;
+        margin: 5px 0;
     }
     
     #start-btn {
-        padding: 15px 30px;
-        font-size: 1.3em;
+        padding: 12px 24px;
+        font-size: 1em;
+    }
+    
+    #high-score-display {
+        font-size: 0.9em;
+        padding: 6px 14px;
+        margin-bottom: 10px;
+    }
+    
+    #continue-btn {
+        padding: 10px 22px;
+        font-size: 0.9em;
     }
     
     #ui-overlay {
-        padding: 10px;
+        padding: 5px;
+        gap: 5px;
     }
     
     #score-display, #combo-display {
-        font-size: 18px;
-        padding: 10px 15px;
+        font-size: 14px;
+        padding: 6px 10px;
+        border-radius: 10px;
+    }
+    
+    #lives-display {
+        font-size: 14px;
+        padding: 5px 8px;
+        letter-spacing: 2px;
+        border-radius: 10px;
+    }
+    
+    #right-panel {
+        gap: 5px;
     }
     
     #countdown-timer {
-        font-size: 24px;
+        font-size: 16px;
+    }
+    
+    #countdown-label {
+        font-size: 10px;
     }
     
     #countdown-display {
-        padding: 10px 15px;
+        padding: 6px 10px;
+        border-radius: 12px;
+    }
+    
+    #instructions {
+        padding: 12px 20px;
+        margin-top: 20px;
+    }
+    
+    #instructions p {
+        font-size: 0.85em;
+        margin: 4px 0;
     }
     
     #leaderboard-panel {
         min-width: unset;
         width: 95vw;
-        padding: 15px;
+        padding: 12px;
     }
     
     #leaderboard-header h2 {
-        font-size: 1.3em;
+        font-size: 1.1em;
     }
     
     #leaderboard-toggle-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5em;
-        bottom: 20px;
-        right: 20px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2em;
+        bottom: 15px;
+        right: 15px;
     }
     
     #player-name-input-container {
@@ -456,6 +700,78 @@ body {
     
     #player-name-input {
         width: 100%;
-        max-width: 250px;
+        max-width: 200px;
+        font-size: 0.9em;
+        padding: 8px 12px;
+    }
+    
+    #submit-score-btn {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+    
+    #celebration-overlay h1 {
+        font-size: 2em;
+    }
+    
+    #final-score {
+        font-size: 1.5em;
+        margin: 15px 0;
+    }
+    
+    #game-over-overlay h1 {
+        font-size: 1.8em;
+    }
+    
+    #game-over-score {
+        font-size: 1.3em;
+    }
+    
+    #game-over-submit-section {
+        padding: 12px;
+    }
+    
+    #game-over-submit-section p {
+        font-size: 0.9em;
+    }
+    
+    #game-over-input-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    #game-over-player-name {
+        width: 100%;
+        max-width: 200px;
+        font-size: 0.9em;
+        padding: 8px 12px;
+    }
+    
+    #game-over-submit-btn {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+    
+    #game-over-restart-btn {
+        padding: 12px 28px;
+        font-size: 1em;
+        margin-top: 15px;
+    }
+    
+    #restart-btn {
+        padding: 12px 28px;
+        font-size: 1em;
+    }
+    
+    .powerup-info {
+        font-size: 0.75em !important;
+    }
+    
+    #score-submit-section {
+        padding: 12px;
+    }
+    
+    #score-submit-section p {
+        font-size: 0.9em;
     }
 }

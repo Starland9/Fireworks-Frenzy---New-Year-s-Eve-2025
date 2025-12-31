@@ -20,7 +20,7 @@ let tutorialStep = 0;
 const TOTAL_TUTORIAL_STEPS = 5;
 
 // Game Constants
-const MAX_LIVES = 3;
+const MAX_LIVES = 5;
 const SHIELD_DURATION = 5000; // 5 seconds
 const TIME_FREEZE_DURATION = 4000; // 4 seconds
 const MULTI_POP_DURATION = 6000; // 6 seconds

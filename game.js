@@ -3,9 +3,17 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
+// Local Storage Keys
+const STORAGE_KEYS = {
+    HIGH_SCORE: 'fireworks_high_score',
+    SAVED_SESSION: 'fireworks_saved_session',
+    PLAYER_NAME: 'fireworks_player_name'
+};
+
 // Game state
 let gameRunning = false;
 let score = 0;
+let highScore = 0;
 let combo = 1;
 let comboTimer = 0;
 let fireworks = [];
@@ -201,6 +209,7 @@ let spawnTimer = 0;
 let difficultyTimer = 0;
 let spawnInterval = 1500; // ms between firework spawns
 let gameStartTime = 0;
+let saveSessionTimer = 0; // Timer for periodic session saving
 
 // Set canvas size
 function resizeCanvas() {
@@ -746,6 +755,13 @@ function gameLoop(timestamp) {
             difficultyTimer = 0;
         }
         
+        // Save game session periodically (every 5 seconds)
+        saveSessionTimer += deltaTime;
+        if (saveSessionTimer >= 5000) {
+            saveGameSession();
+            saveSessionTimer = 0;
+        }
+        
         // Update fireworks
         for (let i = fireworks.length - 1; i >= 0; i--) {
             fireworks[i].update(deltaTime);
@@ -793,6 +809,11 @@ function startGame() {
     difficultyTimer = 0;
     spawnInterval = 1500;
     gameStartTime = Date.now();
+    saveSessionTimer = 0;
+    
+    // Clear any saved session when starting fresh
+    clearGameSession();
+    
     updateUI();
     
     // Initialize audio context on first user interaction
@@ -815,8 +836,18 @@ function startGame() {
 // Show celebration
 function showCelebration() {
     gameRunning = false;
+    
+    // Save high score and clear session
+    saveHighScore();
+    clearGameSession();
+    
     document.getElementById('celebration-overlay').classList.remove('hidden');
     document.getElementById('final-score').textContent = `Final Score: ${score.toLocaleString()} 🏆`;
+    
+    // Show if it's a new high score
+    if (score === highScore && score > 0) {
+        document.getElementById('final-score').textContent += ' 🌟 NEW HIGH SCORE! 🌟';
+    }
     
     // Reset score submission UI
     const submitSection = document.getElementById('score-submit-section');
@@ -830,7 +861,7 @@ function showCelebration() {
     submitStatus.classList.add('hidden');
     
     // Load saved player name if available
-    const savedName = localStorage.getItem('fireworks_player_name');
+    const savedName = localStorage.getItem(STORAGE_KEYS.PLAYER_NAME);
     if (savedName) {
         playerNameInput.value = savedName;
     }
@@ -996,7 +1027,7 @@ async function handleScoreSubmit() {
     }
     
     // Save player name for next time
-    localStorage.setItem('fireworks_player_name', playerName);
+    localStorage.setItem(STORAGE_KEYS.PLAYER_NAME, playerName);
     
     // Disable button and show loading
     submitBtn.disabled = true;
@@ -1029,10 +1060,172 @@ async function handleScoreSubmit() {
 // END LEADERBOARD FUNCTIONALITY
 // ============================================
 
+// ============================================
+// LOCAL STORAGE - SAVE/LOAD GAME STATE
+// ============================================
+
+// Load high score from local storage
+function loadHighScore() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEYS.HIGH_SCORE);
+        if (saved) {
+            const parsed = parseInt(saved, 10);
+            if (!isNaN(parsed) && parsed >= 0) {
+                highScore = parsed;
+                updateHighScoreDisplay();
+            }
+        }
+    } catch (error) {
+        console.log('⚠️ Could not load high score:', error);
+    }
+}
+
+// Save high score to local storage
+function saveHighScore() {
+    try {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem(STORAGE_KEYS.HIGH_SCORE, highScore.toString());
+            updateHighScoreDisplay();
+        }
+    } catch (error) {
+        console.log('⚠️ Could not save high score:', error);
+    }
+}
+
+// Update high score display in UI
+function updateHighScoreDisplay() {
+    const highScoreElement = document.getElementById('high-score');
+    if (highScoreElement) {
+        highScoreElement.textContent = highScore.toLocaleString();
+    }
+}
+
+// Save game session for later resumption
+function saveGameSession() {
+    try {
+        const session = {
+            score: score,
+            combo: combo,
+            comboTimer: comboTimer,
+            spawnInterval: spawnInterval,
+            difficultyTimer: difficultyTimer,
+            gameStartTime: gameStartTime,
+            savedAt: Date.now()
+        };
+        localStorage.setItem(STORAGE_KEYS.SAVED_SESSION, JSON.stringify(session));
+    } catch (error) {
+        console.log('⚠️ Could not save game session:', error);
+    }
+}
+
+// Load saved game session
+function loadGameSession() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEYS.SAVED_SESSION);
+        if (saved) {
+            const session = JSON.parse(saved);
+            // Check if session is less than 24 hours old
+            const MAX_SESSION_AGE = 24 * 60 * 60 * 1000; // 24 hours in ms
+            if (session && session.savedAt && (Date.now() - session.savedAt) < MAX_SESSION_AGE) {
+                return session;
+            } else {
+                // Session expired, clear it
+                clearGameSession();
+            }
+        }
+    } catch (error) {
+        console.log('⚠️ Could not load game session:', error);
+    }
+    return null;
+}
+
+// Clear saved game session
+function clearGameSession() {
+    try {
+        localStorage.removeItem(STORAGE_KEYS.SAVED_SESSION);
+    } catch (error) {
+        console.log('⚠️ Could not clear game session:', error);
+    }
+}
+
+// Check if there's a saved session and show continue button
+function checkSavedSession() {
+    const session = loadGameSession();
+    const continueBtn = document.getElementById('continue-btn');
+    const savedScoreDisplay = document.getElementById('saved-score-display');
+    
+    if (session && session.score > 0 && continueBtn && savedScoreDisplay) {
+        continueBtn.classList.remove('hidden');
+        savedScoreDisplay.textContent = `Continue with ${session.score.toLocaleString()} points`;
+        savedScoreDisplay.classList.remove('hidden');
+    } else if (continueBtn) {
+        continueBtn.classList.add('hidden');
+        if (savedScoreDisplay) savedScoreDisplay.classList.add('hidden');
+    }
+}
+
+// Continue saved game
+function continueGame() {
+    const session = loadGameSession();
+    if (!session) {
+        startGame();
+        return;
+    }
+    
+    document.getElementById('start-screen').classList.add('hidden');
+    gameRunning = true;
+    
+    // Restore session state
+    score = session.score || 0;
+    combo = session.combo || 1;
+    comboTimer = session.comboTimer || 0;
+    spawnInterval = session.spawnInterval || 1500;
+    difficultyTimer = session.difficultyTimer || 0;
+    gameStartTime = session.gameStartTime || Date.now();
+    
+    // Reset runtime state
+    fireworks = [];
+    particles = [];
+    floatingTexts = [];
+    spawnTimer = 0;
+    
+    updateUI();
+    
+    // Initialize audio context on first user interaction
+    initAudioContext();
+    
+    // Resume audio context if suspended
+    if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    
+    // Load sounds after audio context is ready
+    initSounds();
+    
+    // Spawn initial fireworks
+    for (let i = 0; i < 3; i++) {
+        setTimeout(() => spawnFirework(), i * 500);
+    }
+    
+    // Show welcome back floating text
+    floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2, 'Welcome back! 🎉', 'rgba(255, 215, 0, 1)'));
+}
+
+// ============================================
+// END LOCAL STORAGE FUNCTIONALITY
+// ============================================
+
 // Initialize
 function init() {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
+    
+    // Load saved high score
+    loadHighScore();
+    
+    // Check for saved session
+    checkSavedSession();
     
     // Event listeners
     canvas.addEventListener('click', handleClick);
@@ -1040,6 +1233,12 @@ function init() {
     
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+    
+    // Continue game listener
+    const continueBtn = document.getElementById('continue-btn');
+    if (continueBtn) {
+        continueBtn.addEventListener('click', continueGame);
+    }
     
     // Leaderboard event listeners
     document.getElementById('leaderboard-toggle-btn').addEventListener('click', openLeaderboard);

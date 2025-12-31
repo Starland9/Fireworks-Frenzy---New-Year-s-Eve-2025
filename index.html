@@ -37,8 +37,39 @@
         <div id="celebration-overlay" class="hidden">
             <h1>🎉 HAPPY NEW YEAR 2026! 🎉</h1>
             <div id="final-score"></div>
+            <div id="score-submit-section">
+                <p>Submit your score to the global leaderboard!</p>
+                <div id="player-name-input-container">
+                    <input type="text" id="player-name-input" placeholder="Enter your name" maxlength="20" />
+                    <button id="submit-score-btn">🏆 Submit Score</button>
+                </div>
+                <div id="submit-status" class="hidden"></div>
+            </div>
             <button id="restart-btn">🔄 Play Again!</button>
         </div>
+        
+        <div id="leaderboard-panel" class="hidden">
+            <div id="leaderboard-header">
+                <h2>🌍 Global Leaderboard 🏆</h2>
+                <button id="close-leaderboard-btn">✕</button>
+            </div>
+            <div id="leaderboard-content">
+                <div id="leaderboard-loading">Loading...</div>
+                <table id="leaderboard-table" class="hidden">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Player</th>
+                            <th>Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <button id="leaderboard-toggle-btn" title="View Global Leaderboard">🏆</button>
     </div>
     <script src="game.js"></script>
     <script>

@@ -11,6 +11,7 @@ A super fun 2D web game to celebrate the end of 2025! Pop fireworks, build combo
 5. **Golden fireworks** are worth 10x more points!
 6. **💀 AVOID the bombs!** They cost you points and reset your combo!
 7. Keep playing and try to beat your high score!
+8. **Submit your score** to the global leaderboard and compete with players worldwide!
 
 ## ✨ Features
 
@@ -24,6 +25,46 @@ A super fun 2D web game to celebrate the end of 2025! Pop fireworks, build combo
 - 🔊 **Sound Effects**: Pop, explosion, and combo sounds
 - 📱 **Mobile Friendly**: Works on touch devices
 - 🌟 **Progressive Difficulty**: Game gets faster over time
+- 🏆 **Global Leaderboard**: Compete with players worldwide using Vercel Edge Config!
+
+## 🏆 Global Leaderboard
+
+The game features a global leaderboard powered by **Vercel Edge Config** that allows players from around the world to compete for the highest scores!
+
+### Features:
+- 🌍 Real-time global rankings
+- 🥇🥈🥉 Medals for top 3 players
+- 📱 Works on all devices
+- ⚡ Ultra-fast global reads with Edge Config
+- 💾 Player name saved locally for convenience
+
+### How to Set Up the Leaderboard (for developers):
+
+1. **Create an Edge Config in Vercel Dashboard**:
+   - Go to your Vercel Dashboard → Storage → Create → Edge Config
+   - Note the Edge Config ID
+
+2. **Connect to your project**:
+   - Go to your project settings → Environment Variables
+   - Add the following environment variables:
+     - `EDGE_CONFIG` - The connection string (automatically set when you connect Edge Config to your project)
+     - `EDGE_CONFIG_ID` - Your Edge Config ID (found in the Edge Config dashboard)
+     - `VERCEL_API_TOKEN` - A Vercel API token (create at vercel.com/account/tokens)
+
+3. **Deploy to Vercel**:
+   - The leaderboard API is located at `/api/leaderboard`
+   - It handles both GET (fetch leaderboard) and POST (submit score) requests
+
+### API Endpoints:
+
+- `GET /api/leaderboard` - Fetch the global leaderboard (top 100 scores)
+- `POST /api/leaderboard` - Submit a new score
+  ```json
+  {
+    "playerName": "Your Name",
+    "score": 12345
+  }
+  ```
 
 ## 🎵 Adding Custom Audio Files
 

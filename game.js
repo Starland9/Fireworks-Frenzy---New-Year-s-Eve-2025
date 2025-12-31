@@ -8,11 +8,16 @@ const STORAGE_KEYS = {
     HIGH_SCORE: 'fireworks_high_score',
     SAVED_SESSION: 'fireworks_saved_session',
     PLAYER_NAME: 'fireworks_player_name',
-    PLAYER_ID: 'fireworks_player_id'
+    PLAYER_ID: 'fireworks_player_id',
+    TUTORIAL_COMPLETED: 'fireworks_tutorial_completed'
 };
 
 // Session expiration time (24 hours in milliseconds)
 const MAX_SESSION_AGE = 24 * 60 * 60 * 1000;
+
+// Tutorial state
+let tutorialStep = 0;
+const TOTAL_TUTORIAL_STEPS = 5;
 
 // Game Constants
 const MAX_LIVES = 3;
@@ -1863,6 +1868,172 @@ function continueGame() {
 // END LOCAL STORAGE FUNCTIONALITY
 // ============================================
 
+// ============================================
+// FULLSCREEN FUNCTIONALITY (Mobile)
+// ============================================
+
+// Request fullscreen for mobile devices
+function requestFullscreen() {
+    const elem = document.documentElement;
+    
+    try {
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(err => {
+                console.log('Fullscreen request failed:', err);
+            });
+        } else if (elem.webkitRequestFullscreen) { // Safari/Chrome on iOS
+            elem.webkitRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) { // Firefox
+            elem.mozRequestFullScreen();
+        } else if (elem.msRequestFullscreen) { // IE/Edge
+            elem.msRequestFullscreen();
+        }
+    } catch (error) {
+        console.log('Fullscreen not supported:', error);
+    }
+}
+
+// Check if device is mobile
+function isMobileDevice() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+           (window.innerWidth <= 768 && 'ontouchstart' in window);
+}
+
+// ============================================
+// END FULLSCREEN FUNCTIONALITY
+// ============================================
+
+// ============================================
+// TUTORIAL SYSTEM
+// ============================================
+
+// Check if tutorial has been completed
+function isTutorialCompleted() {
+    try {
+        return localStorage.getItem(STORAGE_KEYS.TUTORIAL_COMPLETED) === 'true';
+    } catch (error) {
+        return false;
+    }
+}
+
+// Mark tutorial as completed
+function markTutorialCompleted() {
+    try {
+        localStorage.setItem(STORAGE_KEYS.TUTORIAL_COMPLETED, 'true');
+    } catch (error) {
+        console.log('Could not save tutorial status:', error);
+    }
+}
+
+// Show tutorial overlay
+function showTutorial() {
+    tutorialStep = 1;
+    document.getElementById('tutorial-overlay').classList.remove('hidden');
+    document.getElementById('start-screen').classList.add('hidden');
+    
+    // Show first step
+    showTutorialStep(1);
+    
+    // Request fullscreen on mobile when tutorial starts
+    if (isMobileDevice()) {
+        requestFullscreen();
+    }
+}
+
+// Show specific tutorial step
+function showTutorialStep(step) {
+    // Hide all steps
+    for (let i = 1; i <= TOTAL_TUTORIAL_STEPS; i++) {
+        const stepElement = document.getElementById(`tutorial-step-${i}`);
+        if (stepElement) {
+            stepElement.classList.add('hidden');
+        }
+    }
+    
+    // Show current step
+    const currentStep = document.getElementById(`tutorial-step-${step}`);
+    if (currentStep) {
+        currentStep.classList.remove('hidden');
+    }
+}
+
+// Advance to next tutorial step
+function advanceTutorial() {
+    if (tutorialStep >= TOTAL_TUTORIAL_STEPS) {
+        return;
+    }
+    
+    tutorialStep++;
+    showTutorialStep(tutorialStep);
+}
+
+// Complete and close tutorial
+function closeTutorial() {
+    document.getElementById('tutorial-overlay').classList.add('hidden');
+    markTutorialCompleted();
+    startGameAfterTutorial();
+}
+
+// Skip tutorial
+function skipTutorial() {
+    document.getElementById('tutorial-overlay').classList.add('hidden');
+    markTutorialCompleted();
+    startGameAfterTutorial();
+}
+
+// Start game after tutorial completion
+function startGameAfterTutorial() {
+    startGame();
+}
+
+// Handle tutorial click/tap to advance
+function handleTutorialClick(e) {
+    // If clicking on buttons, don't advance
+    if (e.target.tagName === 'BUTTON') {
+        return;
+    }
+    
+    // Only advance if not on the last step (which has a button)
+    if (tutorialStep < TOTAL_TUTORIAL_STEPS) {
+        advanceTutorial();
+    }
+}
+
+// Initialize tutorial event listeners
+function initTutorialListeners() {
+    const tutorialOverlay = document.getElementById('tutorial-overlay');
+    const skipBtn = document.getElementById('skip-tutorial-btn');
+    const startBtn = document.getElementById('tutorial-start-btn');
+    
+    if (tutorialOverlay) {
+        tutorialOverlay.addEventListener('click', handleTutorialClick);
+        tutorialOverlay.addEventListener('touchstart', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                e.preventDefault();
+                handleTutorialClick(e);
+            }
+        }, { passive: false });
+    }
+    
+    if (skipBtn) {
+        skipBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            skipTutorial();
+        });
+    }
+    
+    if (startBtn) {
+        startBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            closeTutorial();
+        });
+    }
+}
+
+// ============================================
+// END TUTORIAL SYSTEM
+// ============================================
+
 // Initialize
 function init() {
     resizeCanvas();
@@ -1880,23 +2051,55 @@ function init() {
     // Initial lives display
     updateLivesDisplay();
     
+    // Initialize tutorial listeners
+    initTutorialListeners();
+    
     // Event listeners
     canvas.addEventListener('click', handleClick);
     canvas.addEventListener('touchstart', handleTouch, { passive: false });
     
-    document.getElementById('start-btn').addEventListener('click', startGame);
-    document.getElementById('restart-btn').addEventListener('click', restartGame);
+    // Start button - show tutorial if not completed, otherwise start game
+    document.getElementById('start-btn').addEventListener('click', () => {
+        // Request fullscreen on mobile when starting
+        if (isMobileDevice()) {
+            requestFullscreen();
+        }
+        
+        // Show tutorial if not completed
+        if (!isTutorialCompleted()) {
+            showTutorial();
+        } else {
+            startGame();
+        }
+    });
+    document.getElementById('restart-btn').addEventListener('click', () => {
+        if (isMobileDevice()) {
+            requestFullscreen();
+        }
+        restartGame();
+    });
     
     // Continue game listener
     const continueBtn = document.getElementById('continue-btn');
     if (continueBtn) {
-        continueBtn.addEventListener('click', continueGame);
+        continueBtn.addEventListener('click', () => {
+            // Request fullscreen on mobile
+            if (isMobileDevice()) {
+                requestFullscreen();
+            }
+            continueGame();
+        });
     }
     
     // Game over event listeners
     const gameOverRestartBtn = document.getElementById('game-over-restart-btn');
     if (gameOverRestartBtn) {
-        gameOverRestartBtn.addEventListener('click', restartFromGameOver);
+        gameOverRestartBtn.addEventListener('click', () => {
+            if (isMobileDevice()) {
+                requestFullscreen();
+            }
+            restartFromGameOver();
+        });
     }
     
     const gameOverSubmitBtn = document.getElementById('game-over-submit-btn');

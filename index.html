@@ -46,6 +46,68 @@
                 <p class="powerup-info">✨ Power-ups: 💚 +Life | 🛡️ Shield | ⏰ Time Freeze | 💥 Multi-Pop</p>
             </div>
         </div>
+        
+        <!-- Tutorial Overlay -->
+        <div id="tutorial-overlay" class="hidden">
+            <div id="tutorial-content">
+                <div id="tutorial-step-1" class="tutorial-step">
+                    <div class="tutorial-animation">
+                        <div class="demo-firework"></div>
+                        <div class="pointing-finger">👆</div>
+                    </div>
+                    <h2>👆 TAP THE FIREWORKS! 👆</h2>
+                    <p>Tap on the colorful fireworks<br>before they escape!</p>
+                    <div class="tutorial-hint">Tap anywhere to continue</div>
+                </div>
+                
+                <div id="tutorial-step-2" class="tutorial-step hidden">
+                    <div class="tutorial-animation">
+                        <div class="demo-firework golden"></div>
+                        <div class="pointing-finger golden-finger">👆</div>
+                        <div class="sparkle-effect">✨</div>
+                    </div>
+                    <h2>💎 GOLDEN = 10x POINTS! 💎</h2>
+                    <p>Golden fireworks give you<br>10 times more points!</p>
+                    <div class="tutorial-hint">Tap anywhere to continue</div>
+                </div>
+                
+                <div id="tutorial-step-3" class="tutorial-step hidden">
+                    <div class="tutorial-animation">
+                        <div class="demo-bomb">💀</div>
+                        <div class="warning-finger">🚫</div>
+                        <div class="danger-effect">💥</div>
+                    </div>
+                    <h2>💀 AVOID THE BOMBS! 💀</h2>
+                    <p>Don't tap the bombs!<br>They cost you a life!</p>
+                    <div class="tutorial-hint">Tap anywhere to continue</div>
+                </div>
+                
+                <div id="tutorial-step-4" class="tutorial-step hidden">
+                    <div class="tutorial-animation combo-demo">
+                        <div class="combo-fingers">
+                            <span class="finger-1">👆</span>
+                            <span class="finger-2">👆</span>
+                            <span class="finger-3">👆</span>
+                        </div>
+                        <div class="combo-text">COMBO x5! 🔥</div>
+                    </div>
+                    <h2>⚡ CHAIN COMBOS! ⚡</h2>
+                    <p>Quick taps = higher multiplier!<br>Build up your combo for big scores!</p>
+                    <div class="tutorial-hint">Tap anywhere to continue</div>
+                </div>
+                
+                <div id="tutorial-step-5" class="tutorial-step hidden">
+                    <div class="tutorial-animation ready-demo">
+                        <div class="ready-text">🎆 READY? 🎆</div>
+                        <div class="hearts-display">❤️❤️❤️</div>
+                    </div>
+                    <h2>🚀 LET'S GO! 🚀</h2>
+                    <p>You have 3 lives!<br>Don't let fireworks escape!</p>
+                    <button id="tutorial-start-btn">🎉 START PLAYING! 🎉</button>
+                </div>
+            </div>
+            <button id="skip-tutorial-btn">Skip Tutorial ⏭️</button>
+        </div>
         <div id="celebration-overlay" class="hidden">
             <h1>🎉 HAPPY NEW YEAR 2026! 🎉</h1>
             <div id="final-score"></div>

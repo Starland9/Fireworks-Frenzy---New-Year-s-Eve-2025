@@ -818,6 +818,23 @@ function showCelebration() {
     document.getElementById('celebration-overlay').classList.remove('hidden');
     document.getElementById('final-score').textContent = `Final Score: ${score.toLocaleString()} 🏆`;
     
+    // Reset score submission UI
+    const submitSection = document.getElementById('score-submit-section');
+    const submitBtn = document.getElementById('submit-score-btn');
+    const submitStatus = document.getElementById('submit-status');
+    const playerNameInput = document.getElementById('player-name-input');
+    
+    submitSection.classList.remove('hidden');
+    submitBtn.disabled = false;
+    submitBtn.textContent = '🏆 Submit Score';
+    submitStatus.classList.add('hidden');
+    
+    // Load saved player name if available
+    const savedName = localStorage.getItem('fireworks_player_name');
+    if (savedName) {
+        playerNameInput.value = savedName;
+    }
+    
     // Play celebration sound
     playSound('combo', 0.5);
     triggerScreenFlash('rgba(255, 215, 0, 1)', 500);
@@ -845,6 +862,173 @@ function restartGame() {
     startGame();
 }
 
+// ============================================
+// LEADERBOARD FUNCTIONALITY
+// ============================================
+
+const LEADERBOARD_API = '/api/leaderboard';
+
+// Fetch leaderboard from API
+async function fetchLeaderboard() {
+    try {
+        const response = await fetch(LEADERBOARD_API);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+        const data = await response.json();
+        return data.leaderboard || [];
+    } catch (error) {
+        console.error('Error fetching leaderboard:', error);
+        return null;
+    }
+}
+
+// Submit score to leaderboard
+async function submitScore(playerName, playerScore) {
+    try {
+        const response = await fetch(LEADERBOARD_API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                playerName: playerName,
+                score: playerScore,
+            }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to submit score');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        throw error;
+    }
+}
+
+// Display leaderboard in the panel
+function displayLeaderboard(leaderboard) {
+    const tableBody = document.getElementById('leaderboard-body');
+    const table = document.getElementById('leaderboard-table');
+    const loading = document.getElementById('leaderboard-loading');
+    
+    if (!leaderboard || leaderboard.length === 0) {
+        loading.textContent = 'No scores yet. Be the first! 🚀';
+        loading.classList.remove('hidden');
+        table.classList.add('hidden');
+        return;
+    }
+    
+    tableBody.innerHTML = '';
+    
+    leaderboard.forEach((entry, index) => {
+        const row = document.createElement('tr');
+        const rank = index + 1;
+        
+        // Medal for top 3
+        let rankDisplay = rank.toString();
+        if (rank === 1) rankDisplay = '🥇 1';
+        else if (rank === 2) rankDisplay = '🥈 2';
+        else if (rank === 3) rankDisplay = '🥉 3';
+        
+        row.innerHTML = `
+            <td>${rankDisplay}</td>
+            <td>${escapeHtml(entry.playerName)}</td>
+            <td>${entry.score.toLocaleString()}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    loading.classList.add('hidden');
+    table.classList.remove('hidden');
+}
+
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Open leaderboard panel
+async function openLeaderboard() {
+    const panel = document.getElementById('leaderboard-panel');
+    const loading = document.getElementById('leaderboard-loading');
+    const table = document.getElementById('leaderboard-table');
+    
+    panel.classList.remove('hidden');
+    loading.textContent = 'Loading...';
+    loading.classList.remove('hidden');
+    table.classList.add('hidden');
+    
+    const leaderboard = await fetchLeaderboard();
+    
+    if (leaderboard === null) {
+        loading.textContent = 'Unable to load leaderboard. Please try again.';
+    } else {
+        displayLeaderboard(leaderboard);
+    }
+}
+
+// Close leaderboard panel
+function closeLeaderboard() {
+    document.getElementById('leaderboard-panel').classList.add('hidden');
+}
+
+// Handle score submission
+async function handleScoreSubmit() {
+    const playerNameInput = document.getElementById('player-name-input');
+    const submitBtn = document.getElementById('submit-score-btn');
+    const submitStatus = document.getElementById('submit-status');
+    
+    const playerName = playerNameInput.value.trim();
+    
+    if (!playerName || playerName.length < 1 || playerName.length > 20) {
+        submitStatus.textContent = 'Please enter a name (1-20 characters)';
+        submitStatus.className = 'error';
+        submitStatus.classList.remove('hidden');
+        return;
+    }
+    
+    // Save player name for next time
+    localStorage.setItem('fireworks_player_name', playerName);
+    
+    // Disable button and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    submitStatus.classList.add('hidden');
+    
+    try {
+        const result = await submitScore(playerName, score);
+        
+        submitStatus.textContent = result.message || 'Score submitted successfully! 🎉';
+        submitStatus.className = 'success';
+        submitStatus.classList.remove('hidden');
+        submitBtn.textContent = '✅ Submitted!';
+        
+        // Hide the submit section after success
+        setTimeout(() => {
+            document.getElementById('score-submit-section').classList.add('hidden');
+        }, 2000);
+        
+    } catch (error) {
+        submitStatus.textContent = error.message || 'Failed to submit. Please try again.';
+        submitStatus.className = 'error';
+        submitStatus.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🏆 Submit Score';
+    }
+}
+
+// ============================================
+// END LEADERBOARD FUNCTIONALITY
+// ============================================
+
 // Initialize
 function init() {
     resizeCanvas();
@@ -856,6 +1040,18 @@ function init() {
     
     document.getElementById('start-btn').addEventListener('click', startGame);
     document.getElementById('restart-btn').addEventListener('click', restartGame);
+    
+    // Leaderboard event listeners
+    document.getElementById('leaderboard-toggle-btn').addEventListener('click', openLeaderboard);
+    document.getElementById('close-leaderboard-btn').addEventListener('click', closeLeaderboard);
+    document.getElementById('submit-score-btn').addEventListener('click', handleScoreSubmit);
+    
+    // Allow pressing Enter to submit score
+    document.getElementById('player-name-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            handleScoreSubmit();
+        }
+    });
     
     // Start countdown update
     updateCountdown();

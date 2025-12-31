@@ -313,7 +313,7 @@ function isMobile() {
 }
 
 function getMobileScale() {
-    return isMobile() ? 0.8 : 1;
+    return isMobile() ? 1 : 1;
 }
 
 // Set canvas size

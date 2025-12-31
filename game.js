@@ -29,148 +29,158 @@ const MULTI_POP_DURATION = 6000; // 6 seconds
 const NEW_YEAR_MESSAGES = [
     // French
     "Bonne année!",
+    "Meilleurs vœux!",
+    "Bonne et heureuse année!",
     "Année de succès!",
     "Année de prospérité!",
     "Santé et bonheur!",
     "Joie et paix!",
+    "Que vos rêves se réalisent!",
+    "Une année pleine de joie!",
+    "Bonheur et réussite!",
+    "Longue vie et prospérité!",
+    "Tous mes vœux!",
+    "Année exceptionnelle!",
+    "Que cette année vous apporte tout le bonheur!",
+    "Plein de bonnes choses!",
+    "Année de chance!",
+    "Amour et bonheur!",
+    "Paix et sérénité!",
+    "Succès dans tous vos projets!",
+    "Une magnifique année!",
+    "Nouvelle année, nouveaux rêves!",
+    "Que la joie vous accompagne!",
+    "Année de réalisations!",
+    "Belles surprises en perspective!",
+    "Une année inoubliable!",
     
     // English
     "Happy New Year!",
+    "Best wishes!",
+    "Happy and prosperous New Year!",
     "Year of success!",
     "Year of prosperity!",
     "Health and happiness!",
     "Joy and peace!",
+    "May your dreams come true!",
+    "A year full of joy!",
+    "Happiness and success!",
+    "Long life and prosperity!",
+    "All the best!",
+    "Exceptional year ahead!",
+    "May this year bring you happiness!",
+    "Lots of good things!",
+    "Year of luck!",
+    "Love and happiness!",
+    "Peace and serenity!",
+    "Success in all your projects!",
+    "A magnificent year!",
+    "New year, new dreams!",
+    "May joy be with you!",
+    "Year of achievements!",
+    "Great surprises ahead!",
+    "An unforgettable year!",
+    "Cheers to the new year!",
+    "Wishing you the best!",
+    "May your year sparkle!",
+    "New beginnings await!",
+    "Here's to new adventures!",
     
     // Spanish
     "¡Feliz Año Nuevo!",
+    "¡Felices fiestas!",
+    "¡Próspero Año Nuevo!",
     "¡Año de éxito!",
     "¡Año de prosperidad!",
     "¡Salud y felicidad!",
     "¡Alegría y paz!",
+    "¡Que se cumplan tus sueños!",
+    "¡Un año lleno de alegría!",
+    "¡Felicidad y éxito!",
+    "¡Larga vida y prosperidad!",
+    "¡Los mejores deseos!",
+    "¡Año excepcional!",
+    "¡Que este año te traiga felicidad!",
+    "¡Muchas cosas buenas!",
+    "¡Año de suerte!",
+    "¡Amor y felicidad!",
+    "¡Paz y serenidad!",
+    "¡Éxito en todos tus proyectos!",
+    "¡Un año magnífico!",
+    "¡Nuevo año, nuevos sueños!",
+    "¡Que la alegría te acompañe!",
+    "¡Año de logros!",
+    "¡Grandes sorpresas por venir!",
+    "¡Un año inolvidable!",
+    "¡Feliz entrada de año!",
+    "¡Que tengas un gran año!",
+    "¡Nuevos comienzos!",
+    "¡Aventuras te esperan!",
+    "¡Brindemos por el año nuevo!",
     
     // German
     "Frohes neues Jahr!",
+    "Alles Gute!",
+    "Ein frohes und erfolgreiches neues Jahr!",
     "Jahr des Erfolgs!",
     "Jahr des Wohlstands!",
     "Gesundheit und Glück!",
+    "Freude und Frieden!",
+    "Mögen deine Träume wahr werden!",
+    "Ein Jahr voller Freude!",
+    "Glück und Erfolg!",
+    "Langes Leben und Wohlstand!",
+    "Die besten Wünsche!",
+    "Außergewöhnliches Jahr!",
+    "Möge dieses Jahr dir Glück bringen!",
+    "Viele gute Dinge!",
+    "Jahr des Glücks!",
+    "Liebe und Glück!",
+    "Frieden und Gelassenheit!",
+    "Erfolg in allen Projekten!",
+    "Ein wunderbares Jahr!",
+    "Neues Jahr, neue Träume!",
+    "Möge Freude dich begleiten!",
+    "Jahr der Errungenschaften!",
+    "Große Überraschungen kommen!",
+    "Ein unvergessliches Jahr!",
+    "Prosit Neujahr!",
+    "Guten Rutsch ins neue Jahr!",
+    "Viel Glück im neuen Jahr!",
+    "Neue Anfänge warten!",
+    "Auf neue Abenteuer!",
     
     // Italian
     "Buon anno!",
+    "Auguri!",
+    "Felice e prospero anno nuovo!",
     "Anno di successo!",
     "Anno di prosperità!",
     "Salute e felicità!",
-    
-    // Portuguese
-    "Feliz Ano Novo!",
-    "Ano de sucesso!",
-    "Ano de prosperidade!",
-    "Saúde e felicidade!",
-    
-    // Russian
-    "С новым годом!",
-    "Год успеха!",
-    "Год процветания!",
-    
-    // Japanese
-    "明けましておめでとう!",
-    "成功の年!",
-    "繁栄の年!",
-    
-    // Chinese
-    "新年快乐!",
-    "成功之年!",
-    "繁荣之年!",
-    "健康幸福!",
-    
-    // Arabic
-    "سنة جديدة سعيدة!",
-    "سنة النجاح!",
-    "سنة الازدهار!",
-    
-    // Hindi
-    "नया साल मुबारक हो!",
-    "सफलता का वर्ष!",
-    "समृद्धि का वर्ष!",
-    
-    // Korean
-    "새해 복 많이 받으세요!",
-    "성공의 해!",
-    "번영의 해!",
-    
-    // Dutch
-    "Gelukkig nieuwjaar!",
-    "Jaar van succes!",
-    "Jaar van voorspoed!",
-    
-    // Swedish
-    "Gott nytt år!",
-    "Framgångens år!",
-    "Välståndets år!",
-    
-    // Polish
-    "Szczęśliwego nowego roku!",
-    "Rok sukcesu!",
-    "Rok prosperity!",
-    
-    // Turkish
-    "Mutlu yıllar!",
-    "Başarı yılı!",
-    "Refah yılı!",
-    
-    // Greek
-    "Καλή χρονιά!",
-    "Χρόνος επιτυχίας!",
-    "Χρόνος ευημερίας!",
-    
-    // Hebrew
-    "!שנה טובה",
-    "!שנה של הצלחה",
-    
-    // Vietnamese
-    "Chúc mừng năm mới!",
-    "Năm thành công!",
-    "Năm thịnh vượng!",
-    
-    // Thai
-    "สวัสดีปีใหม่!",
-    "ปีแห่งความสำเร็จ!",
-    
-    // Indonesian
-    "Selamat Tahun Baru!",
-    "Tahun kesuksesan!",
-    "Tahun kemakmuran!",
-    
-    // Swahili
-    "Heri ya mwaka mpya!",
-    "Mwaka wa mafanikio!",
-    
-    // Norwegian
-    "Godt nytt år!",
-    "Suksessens år!",
-    
-    // Danish
-    "Godt nytår!",
-    "Succesens år!",
-    
-    // Finnish
-    "Onnellista uutta vuotta!",
-    "Menestyksen vuosi!",
-    
-    // Czech
-    "Šťastný nový rok!",
-    "Rok úspěchu!",
-    
-    // Hungarian
-    "Boldog új évet!",
-    "A siker éve!",
-    
-    // Romanian
-    "An nou fericit!",
-    "Anul succesului!",
-    
-    // Ukrainian
-    "З новим роком!",
-    "Рік успіху!"
+    "Gioia e pace!",
+    "Che i tuoi sogni si avverino!",
+    "Un anno pieno di gioia!",
+    "Felicità e successo!",
+    "Lunga vita e prosperità!",
+    "I migliori auguri!",
+    "Anno eccezionale!",
+    "Che quest'anno ti porti felicità!",
+    "Tante cose belle!",
+    "Anno di fortuna!",
+    "Amore e felicità!",
+    "Pace e serenità!",
+    "Successo in tutti i tuoi progetti!",
+    "Un anno magnifico!",
+    "Anno nuovo, sogni nuovi!",
+    "Che la gioia ti accompagni!",
+    "Anno di realizzazioni!",
+    "Grandi sorprese in arrivo!",
+    "Un anno indimenticabile!",
+    "Tanti auguri di buon anno!",
+    "Che tu abbia un grande anno!",
+    "Nuovi inizi ti aspettano!",
+    "Avventure in vista!",
+    "Brindiamo al nuovo anno!"
 ];
 
 // Get random New Year message

@@ -1882,21 +1882,41 @@ function requestFullscreen() {
                 console.log('Fullscreen request failed:', err);
             });
         } else if (elem.webkitRequestFullscreen) { // Safari/Chrome on iOS
-            elem.webkitRequestFullscreen();
+            try {
+                elem.webkitRequestFullscreen();
+            } catch (err) {
+                console.log('Webkit fullscreen failed:', err);
+            }
         } else if (elem.mozRequestFullScreen) { // Firefox
-            elem.mozRequestFullScreen();
+            try {
+                elem.mozRequestFullScreen();
+            } catch (err) {
+                console.log('Mozilla fullscreen failed:', err);
+            }
         } else if (elem.msRequestFullscreen) { // IE/Edge
-            elem.msRequestFullscreen();
+            try {
+                elem.msRequestFullscreen();
+            } catch (err) {
+                console.log('MS fullscreen failed:', err);
+            }
         }
     } catch (error) {
         console.log('Fullscreen not supported:', error);
     }
 }
 
-// Check if device is mobile
+// Check if device is mobile using touch capability and screen size
 function isMobileDevice() {
-    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
-           (window.innerWidth <= 768 && 'ontouchstart' in window);
+    // Check for touch capability
+    const hasTouch = 'ontouchstart' in window || 
+                     navigator.maxTouchPoints > 0 || 
+                     navigator.msMaxTouchPoints > 0;
+    
+    // Check for small screen size (typical mobile dimensions)
+    const isSmallScreen = window.innerWidth <= 768;
+    
+    // A mobile device typically has both touch capability and small screen
+    return hasTouch && isSmallScreen;
 }
 
 // ============================================
@@ -2007,12 +2027,13 @@ function initTutorialListeners() {
     
     if (tutorialOverlay) {
         tutorialOverlay.addEventListener('click', handleTutorialClick);
-        tutorialOverlay.addEventListener('touchstart', (e) => {
+        // Use touchend instead of touchstart to avoid scroll performance issues
+        // touchend doesn't need passive: false since we don't need to prevent scrolling
+        tutorialOverlay.addEventListener('touchend', (e) => {
             if (e.target.tagName !== 'BUTTON') {
-                e.preventDefault();
                 handleTutorialClick(e);
             }
-        }, { passive: false });
+        });
     }
     
     if (skipBtn) {

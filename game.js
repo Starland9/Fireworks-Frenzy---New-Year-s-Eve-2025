@@ -10,6 +10,9 @@ const STORAGE_KEYS = {
     PLAYER_NAME: 'fireworks_player_name'
 };
 
+// Session expiration time (24 hours in milliseconds)
+const MAX_SESSION_AGE = 24 * 60 * 60 * 1000;
+
 // Game state
 let gameRunning = false;
 let score = 0;
@@ -1126,7 +1129,6 @@ function loadGameSession() {
         if (saved) {
             const session = JSON.parse(saved);
             // Check if session is less than 24 hours old
-            const MAX_SESSION_AGE = 24 * 60 * 60 * 1000; // 24 hours in ms
             if (session && session.savedAt && (Date.now() - session.savedAt) < MAX_SESSION_AGE) {
                 return session;
             } else {

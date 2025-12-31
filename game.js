@@ -7,11 +7,26 @@ const ctx = canvas.getContext('2d');
 const STORAGE_KEYS = {
     HIGH_SCORE: 'fireworks_high_score',
     SAVED_SESSION: 'fireworks_saved_session',
-    PLAYER_NAME: 'fireworks_player_name'
+    PLAYER_NAME: 'fireworks_player_name',
+    PLAYER_ID: 'fireworks_player_id'
 };
 
 // Session expiration time (24 hours in milliseconds)
 const MAX_SESSION_AGE = 24 * 60 * 60 * 1000;
+
+// Game Constants
+const MAX_LIVES = 3;
+const SHIELD_DURATION = 5000; // 5 seconds
+const TIME_FREEZE_DURATION = 4000; // 4 seconds
+const MULTI_POP_DURATION = 6000; // 6 seconds
+
+// Power-up types
+const POWERUP_TYPES = {
+    EXTRA_LIFE: 'extraLife',
+    SHIELD: 'shield',
+    TIME_FREEZE: 'timeFreeze',
+    MULTI_POP: 'multiPop'
+};
 
 // Game state
 let gameRunning = false;
@@ -19,10 +34,25 @@ let score = 0;
 let highScore = 0;
 let combo = 1;
 let comboTimer = 0;
+let lives = MAX_LIVES;
 let fireworks = [];
 let particles = [];
 let stars = [];
 let floatingTexts = [];
+let powerups = [];
+
+// Active power-up effects
+let activeEffects = {
+    shield: false,
+    shieldTimer: 0,
+    timeFreeze: false,
+    timeFreezeTimer: 0,
+    multiPop: false,
+    multiPopTimer: 0
+};
+
+// Player identification for leaderboard
+let playerId = null;
 
 // Visual effects state
 let screenShake = { x: 0, y: 0, intensity: 0, duration: 0 };
@@ -346,6 +376,8 @@ class Firework {
             // Missed - reset combo (but not if it's a bomb - avoiding bombs is good!)
             if (!this.isBomb) {
                 combo = 1;
+                // Lose a life for missing a normal/golden firework
+                loseLife('Firework escaped! 💨');
                 updateUI();
             }
         }
@@ -573,6 +605,253 @@ function drawFloatingTexts() {
     }
 }
 
+// ============================================
+// POWER-UP SYSTEM
+// ============================================
+
+class PowerUp {
+    constructor(type) {
+        this.x = Math.random() * (canvas.width - 100) + 50;
+        this.y = canvas.height + 30;
+        this.targetY = Math.random() * (canvas.height * 0.5) + 100;
+        this.speed = Math.random() * 2 + 2;
+        this.radius = 25;
+        this.type = type;
+        this.alive = true;
+        this.pulsePhase = Math.random() * Math.PI * 2;
+        this.wobble = 0;
+        this.wobbleSpeed = 0.08;
+        this.collected = false;
+        this.collectAnimation = 0;
+        
+        // Set appearance based on type
+        switch(type) {
+            case POWERUP_TYPES.EXTRA_LIFE:
+                this.emoji = '💚';
+                this.color = 'rgba(0, 255, 100, 1)';
+                this.glowColor = 'rgba(0, 255, 100, 0.5)';
+                break;
+            case POWERUP_TYPES.SHIELD:
+                this.emoji = '🛡️';
+                this.color = 'rgba(100, 150, 255, 1)';
+                this.glowColor = 'rgba(100, 150, 255, 0.5)';
+                break;
+            case POWERUP_TYPES.TIME_FREEZE:
+                this.emoji = '⏰';
+                this.color = 'rgba(150, 200, 255, 1)';
+                this.glowColor = 'rgba(150, 200, 255, 0.5)';
+                break;
+            case POWERUP_TYPES.MULTI_POP:
+                this.emoji = '💥';
+                this.color = 'rgba(255, 150, 0, 1)';
+                this.glowColor = 'rgba(255, 150, 0, 0.5)';
+                break;
+        }
+    }
+    
+    update(deltaTime) {
+        if (this.collected) {
+            this.collectAnimation += deltaTime;
+            if (this.collectAnimation > 500) {
+                this.alive = false;
+            }
+            return;
+        }
+        
+        this.wobble += this.wobbleSpeed;
+        this.x += Math.sin(this.wobble) * 1;
+        this.y -= this.speed;
+        this.pulsePhase += 0.1;
+        
+        // Disappear if reached target
+        if (this.y <= this.targetY - 100) {
+            this.alive = false;
+        }
+    }
+    
+    draw() {
+        if (!this.alive) return;
+        
+        const scale = this.collected ? (1 + this.collectAnimation / 200) : (1 + Math.sin(this.pulsePhase) * 0.1);
+        const alpha = this.collected ? Math.max(0, 1 - this.collectAnimation / 500) : 1;
+        
+        // Glow effect
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, this.radius * 2
+        );
+        gradient.addColorStop(0, this.glowColor);
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        
+        ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 2, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+        
+        // Draw emoji
+        ctx.font = `${this.radius * scale}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.emoji, this.x, this.y);
+        
+        ctx.globalAlpha = 1;
+    }
+    
+    contains(px, py) {
+        if (this.collected) return false;
+        const dx = px - this.x;
+        const dy = py - this.y;
+        return dx * dx + dy * dy <= this.radius * this.radius * 2;
+    }
+    
+    collect() {
+        if (this.collected) return;
+        this.collected = true;
+        
+        // Apply power-up effect
+        switch(this.type) {
+            case POWERUP_TYPES.EXTRA_LIFE:
+                if (lives < MAX_LIVES) {
+                    lives++;
+                    updateLivesDisplay();
+                    floatingTexts.push(new FloatingText(this.x, this.y, '+1 ❤️', 'rgba(0, 255, 100, 1)'));
+                    playSound('golden', 0.4);
+                } else {
+                    // Already max lives, give bonus points
+                    const bonus = 500;
+                    score += bonus;
+                    floatingTexts.push(new FloatingText(this.x, this.y, `+${bonus} MAX HP!`, 'rgba(0, 255, 100, 1)'));
+                    playSound('combo', 0.4);
+                }
+                break;
+            case POWERUP_TYPES.SHIELD:
+                activeEffects.shield = true;
+                activeEffects.shieldTimer = SHIELD_DURATION;
+                floatingTexts.push(new FloatingText(this.x, this.y, '🛡️ SHIELD!', 'rgba(100, 150, 255, 1)'));
+                playSound('golden', 0.4);
+                triggerScreenFlash('rgba(100, 150, 255, 1)', 200);
+                break;
+            case POWERUP_TYPES.TIME_FREEZE:
+                activeEffects.timeFreeze = true;
+                activeEffects.timeFreezeTimer = TIME_FREEZE_DURATION;
+                floatingTexts.push(new FloatingText(this.x, this.y, '⏰ FREEZE!', 'rgba(150, 200, 255, 1)'));
+                playSound('golden', 0.4);
+                triggerScreenFlash('rgba(150, 200, 255, 1)', 200);
+                break;
+            case POWERUP_TYPES.MULTI_POP:
+                activeEffects.multiPop = true;
+                activeEffects.multiPopTimer = MULTI_POP_DURATION;
+                floatingTexts.push(new FloatingText(this.x, this.y, '💥 MULTI-POP!', 'rgba(255, 150, 0, 1)'));
+                playSound('combo', 0.4);
+                triggerScreenFlash('rgba(255, 150, 0, 1)', 200);
+                break;
+        }
+        
+        updateUI();
+    }
+}
+
+// Spawn power-up with random type
+function spawnPowerUp() {
+    const types = Object.values(POWERUP_TYPES);
+    // Extra life is rarer
+    const weights = [0.15, 0.3, 0.25, 0.3]; // extraLife, shield, timeFreeze, multiPop
+    const rand = Math.random();
+    let cumulative = 0;
+    let selectedType = types[0];
+    
+    for (let i = 0; i < types.length; i++) {
+        cumulative += weights[i];
+        if (rand < cumulative) {
+            selectedType = types[i];
+            break;
+        }
+    }
+    
+    powerups.push(new PowerUp(selectedType));
+}
+
+// Update power-ups
+function updatePowerUps(deltaTime) {
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        powerups[i].update(deltaTime);
+        if (!powerups[i].alive) {
+            powerups.splice(i, 1);
+        }
+    }
+}
+
+// Draw power-ups
+function drawPowerUps() {
+    for (const pu of powerups) {
+        pu.draw();
+    }
+}
+
+// Update active effects
+function updateActiveEffects(deltaTime) {
+    if (activeEffects.shield) {
+        activeEffects.shieldTimer -= deltaTime;
+        if (activeEffects.shieldTimer <= 0) {
+            activeEffects.shield = false;
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2, 'Shield expired!', 'rgba(100, 150, 255, 1)'));
+        }
+    }
+    
+    if (activeEffects.timeFreeze) {
+        activeEffects.timeFreezeTimer -= deltaTime;
+        if (activeEffects.timeFreezeTimer <= 0) {
+            activeEffects.timeFreeze = false;
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2, 'Time resumed!', 'rgba(150, 200, 255, 1)'));
+        }
+    }
+    
+    if (activeEffects.multiPop) {
+        activeEffects.multiPopTimer -= deltaTime;
+        if (activeEffects.multiPopTimer <= 0) {
+            activeEffects.multiPop = false;
+            floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2, 'Multi-Pop ended!', 'rgba(255, 150, 0, 1)'));
+        }
+    }
+    
+    updateEffectsDisplay();
+}
+
+// Draw active effects indicators
+function drawActiveEffects() {
+    let yOffset = 80;
+    const x = 20;
+    
+    ctx.font = 'bold 16px Arial';
+    ctx.textAlign = 'left';
+    
+    if (activeEffects.shield) {
+        const timeLeft = Math.ceil(activeEffects.shieldTimer / 1000);
+        ctx.fillStyle = 'rgba(100, 150, 255, 0.9)';
+        ctx.fillText(`🛡️ Shield: ${timeLeft}s`, x, yOffset);
+        yOffset += 25;
+    }
+    
+    if (activeEffects.timeFreeze) {
+        const timeLeft = Math.ceil(activeEffects.timeFreezeTimer / 1000);
+        ctx.fillStyle = 'rgba(150, 200, 255, 0.9)';
+        ctx.fillText(`⏰ Freeze: ${timeLeft}s`, x, yOffset);
+        yOffset += 25;
+    }
+    
+    if (activeEffects.multiPop) {
+        const timeLeft = Math.ceil(activeEffects.multiPopTimer / 1000);
+        ctx.fillStyle = 'rgba(255, 150, 0, 0.9)';
+        ctx.fillText(`💥 Multi-Pop: ${timeLeft}s`, x, yOffset);
+        yOffset += 25;
+    }
+}
+
+// ============================================
+// END POWER-UP SYSTEM
+// ============================================
+
 // Spawn new firework
 function spawnFirework() {
     fireworks.push(new Firework());
@@ -605,6 +884,78 @@ function updateUI() {
     document.getElementById('combo').textContent = `x${combo}`;
 }
 
+// Update lives display
+function updateLivesDisplay() {
+    const livesDisplay = document.getElementById('lives-display');
+    if (livesDisplay) {
+        let hearts = '';
+        for (let i = 0; i < MAX_LIVES; i++) {
+            hearts += i < lives ? '❤️' : '🖤';
+        }
+        livesDisplay.textContent = hearts;
+    }
+}
+
+// Update effects display (stub for UI, actual drawing in canvas)
+function updateEffectsDisplay() {
+    // Effects are drawn directly on canvas in drawActiveEffects()
+}
+
+// Lose a life
+function loseLife(reason) {
+    // Shield protects from losing life
+    if (activeEffects.shield) {
+        floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2, '🛡️ Shield protected!', 'rgba(100, 150, 255, 1)'));
+        return;
+    }
+    
+    lives--;
+    updateLivesDisplay();
+    
+    floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2 - 50, reason, 'rgba(255, 100, 100, 1)'));
+    floatingTexts.push(new FloatingText(canvas.width / 2, canvas.height / 2, `-1 ❤️ (${lives} left)`, 'rgba(255, 50, 50, 1)'));
+    
+    triggerScreenShake(10, 300);
+    
+    if (lives <= 0) {
+        gameOver();
+    }
+}
+
+// Game Over
+function gameOver() {
+    gameRunning = false;
+    
+    // Save high score
+    saveHighScore();
+    clearGameSession();
+    
+    // Show game over overlay
+    showGameOver();
+}
+
+// Generate unique player ID
+function generatePlayerId() {
+    return `player_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+}
+
+// Get or create player ID
+function getPlayerId() {
+    if (playerId) return playerId;
+    
+    try {
+        playerId = localStorage.getItem(STORAGE_KEYS.PLAYER_ID);
+        if (!playerId) {
+            playerId = generatePlayerId();
+            localStorage.setItem(STORAGE_KEYS.PLAYER_ID, playerId);
+        }
+    } catch (error) {
+        playerId = generatePlayerId();
+    }
+    
+    return playerId;
+}
+
 // Handle click/tap
 function handleClick(e) {
     if (!gameRunning) return;
@@ -615,28 +966,52 @@ function handleClick(e) {
     
     let hit = false;
     
+    // Check power-ups first
+    for (let i = powerups.length - 1; i >= 0; i--) {
+        const pu = powerups[i];
+        if (pu.contains(x, y)) {
+            pu.collect();
+            hit = true;
+            break;
+        }
+    }
+    
+    // Then check fireworks
+    const fireworksToExplode = [];
+    
     for (let i = fireworks.length - 1; i >= 0; i--) {
         const fw = fireworks[i];
         if (fw.contains(x, y)) {
             hit = true;
             
             if (fw.isBomb) {
-                // BOOM! Hit a bomb - lose points and combo
-                const penalty = 50 * combo;
-                score = Math.max(0, score - penalty);
-                combo = 1;
-                
-                // Effects for bomb hit
-                playSound('bomb', 0.6);
-                triggerScreenShake(20, 500);
-                triggerScreenFlash('rgba(255, 0, 0, 1)', 300);
-                
-                // Create warning floating text
-                floatingTexts.push(new FloatingText(fw.x, fw.y, `💀 -${penalty}!`, 'rgba(255, 50, 50, 1)'));
-                floatingTexts.push(new FloatingText(fw.x, fw.y - 30, 'BOOM!', 'rgba(255, 100, 0, 1)'));
-                
-                // Explode the bomb
-                fw.explode(true);
+                // Check if shield is active
+                if (activeEffects.shield) {
+                    // Shield protects from bomb
+                    floatingTexts.push(new FloatingText(fw.x, fw.y, '🛡️ BLOCKED!', 'rgba(100, 150, 255, 1)'));
+                    playSound('pop', 0.3);
+                    fw.explode(true);
+                } else {
+                    // BOOM! Hit a bomb - lose a life
+                    const penalty = 50 * combo;
+                    score = Math.max(0, score - penalty);
+                    combo = 1;
+                    
+                    // Effects for bomb hit
+                    playSound('bomb', 0.6);
+                    triggerScreenShake(20, 500);
+                    triggerScreenFlash('rgba(255, 0, 0, 1)', 300);
+                    
+                    // Create warning floating text
+                    floatingTexts.push(new FloatingText(fw.x, fw.y, `💀 -${penalty}!`, 'rgba(255, 50, 50, 1)'));
+                    floatingTexts.push(new FloatingText(fw.x, fw.y - 30, 'BOOM!', 'rgba(255, 100, 0, 1)'));
+                    
+                    // Lose a life for hitting bomb
+                    loseLife('Hit a bomb! 💣');
+                    
+                    // Explode the bomb
+                    fw.explode(true);
+                }
             } else {
                 // Calculate points
                 const basePoints = fw.isGolden ? 100 : 10;
@@ -672,10 +1047,35 @@ function handleClick(e) {
                 
                 // Explode the firework
                 fw.explode(true);
+                
+                // Multi-pop: chain explosion to nearby fireworks
+                if (activeEffects.multiPop) {
+                    for (let j = fireworks.length - 1; j >= 0; j--) {
+                        if (j !== i && !fireworks[j].exploding && !fireworks[j].isBomb) {
+                            const dx = fireworks[j].x - fw.x;
+                            const dy = fireworks[j].y - fw.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist < 150) {
+                                fireworksToExplode.push(j);
+                            }
+                        }
+                    }
+                }
             }
             
             updateUI();
-            break; // Only pop one firework per click
+            break; // Only pop one firework per click (multi-pop handles the rest)
+        }
+    }
+    
+    // Handle multi-pop chain explosions
+    for (const idx of fireworksToExplode) {
+        if (fireworks[idx] && !fireworks[idx].exploding) {
+            const chainFw = fireworks[idx];
+            const chainPoints = (chainFw.isGolden ? 100 : 10) * Math.floor(combo / 2);
+            score += chainPoints;
+            floatingTexts.push(new FloatingText(chainFw.x, chainFw.y, `+${chainPoints} CHAIN!`, 'rgba(255, 150, 0, 1)'));
+            chainFw.explode(true);
         }
     }
     
@@ -735,6 +1135,9 @@ function gameLoop(timestamp) {
     drawStars(deltaTime);
     
     if (gameRunning) {
+        // Update active power-up effects
+        updateActiveEffects(deltaTime);
+        
         // Update combo timer
         if (comboTimer > 0) {
             comboTimer -= deltaTime;
@@ -744,11 +1147,17 @@ function gameLoop(timestamp) {
             }
         }
         
-        // Spawn fireworks
+        // Spawn fireworks (slower if time freeze active)
+        const spawnMultiplier = activeEffects.timeFreeze ? 3 : 1;
         spawnTimer += deltaTime;
-        if (spawnTimer >= spawnInterval) {
+        if (spawnTimer >= spawnInterval * spawnMultiplier) {
             spawnFirework();
             spawnTimer = 0;
+            
+            // 8% chance to spawn a power-up with each firework
+            if (Math.random() < 0.08) {
+                spawnPowerUp();
+            }
         }
         
         // Increase difficulty over time
@@ -765,13 +1174,17 @@ function gameLoop(timestamp) {
             saveSessionTimer = 0;
         }
         
-        // Update fireworks
+        // Update fireworks (slower movement if time freeze)
+        const speedMultiplier = activeEffects.timeFreeze ? 0.3 : 1;
         for (let i = fireworks.length - 1; i >= 0; i--) {
-            fireworks[i].update(deltaTime);
+            fireworks[i].update(deltaTime * speedMultiplier);
             if (!fireworks[i].alive) {
                 fireworks.splice(i, 1);
             }
         }
+        
+        // Update power-ups
+        updatePowerUps(deltaTime);
         
         // Update particles
         updateParticles(deltaTime);
@@ -784,14 +1197,26 @@ function gameLoop(timestamp) {
             fw.draw();
         }
         
+        // Draw power-ups
+        drawPowerUps();
+        
         // Draw particles
         drawParticles();
         
         // Draw floating texts
         drawFloatingTexts();
         
+        // Draw active effects indicators
+        drawActiveEffects();
+        
         // Draw screen flash
         drawScreenFlash();
+        
+        // Draw time freeze overlay
+        if (activeEffects.timeFreeze) {
+            ctx.fillStyle = 'rgba(150, 200, 255, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
     }
     
     ctx.restore();
@@ -802,22 +1227,36 @@ function gameLoop(timestamp) {
 // Start game
 function startGame() {
     document.getElementById('start-screen').classList.add('hidden');
+    document.getElementById('game-over-overlay').classList.add('hidden');
     gameRunning = true;
     score = 0;
     combo = 1;
+    lives = MAX_LIVES;
     fireworks = [];
     particles = [];
     floatingTexts = [];
+    powerups = [];
     spawnTimer = 0;
     difficultyTimer = 0;
     spawnInterval = 1500;
     gameStartTime = Date.now();
     saveSessionTimer = 0;
     
+    // Reset active effects
+    activeEffects = {
+        shield: false,
+        shieldTimer: 0,
+        timeFreeze: false,
+        timeFreezeTimer: 0,
+        multiPop: false,
+        multiPopTimer: 0
+    };
+    
     // Clear any saved session when starting fresh
     clearGameSession();
     
     updateUI();
+    updateLivesDisplay();
     
     // Initialize audio context on first user interaction
     initAudioContext();
@@ -893,6 +1332,117 @@ function showCelebration() {
 // Restart game
 function restartGame() {
     document.getElementById('celebration-overlay').classList.add('hidden');
+    startGame();
+}
+
+// Show game over screen
+function showGameOver() {
+    document.getElementById('game-over-overlay').classList.remove('hidden');
+    document.getElementById('game-over-score').textContent = `Final Score: ${score.toLocaleString()}`;
+    
+    // Show if it's a new high score
+    const isNewHighScore = score === highScore && score > 0;
+    if (isNewHighScore) {
+        document.getElementById('game-over-score').textContent += ' 🌟 NEW HIGH SCORE!';
+    }
+    
+    // Update player name input with saved name
+    const savedName = localStorage.getItem(STORAGE_KEYS.PLAYER_NAME);
+    const nameInput = document.getElementById('game-over-player-name');
+    if (savedName && nameInput) {
+        nameInput.value = savedName;
+    }
+    
+    // Reset submit UI
+    const submitBtn = document.getElementById('game-over-submit-btn');
+    const submitStatus = document.getElementById('game-over-submit-status');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🏆 Submit Score';
+    }
+    if (submitStatus) {
+        submitStatus.classList.add('hidden');
+    }
+    
+    // Play death sound
+    playSound('bomb', 0.5);
+    triggerScreenShake(15, 400);
+    triggerScreenFlash('rgba(255, 0, 0, 1)', 400);
+}
+
+// Handle game over score submission
+async function handleGameOverSubmit() {
+    const playerNameInput = document.getElementById('game-over-player-name');
+    const submitBtn = document.getElementById('game-over-submit-btn');
+    const submitStatus = document.getElementById('game-over-submit-status');
+    
+    const playerName = playerNameInput.value.trim();
+    
+    if (!playerName || playerName.length < 1 || playerName.length > 20) {
+        submitStatus.textContent = 'Please enter a name (1-20 characters)';
+        submitStatus.className = 'error';
+        submitStatus.classList.remove('hidden');
+        return;
+    }
+    
+    // Save player name for next time
+    localStorage.setItem(STORAGE_KEYS.PLAYER_NAME, playerName);
+    
+    // Disable button and show loading
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Submitting...';
+    submitStatus.classList.add('hidden');
+    
+    try {
+        const result = await submitScoreWithPlayerId(playerName, score);
+        
+        submitStatus.textContent = result.message || 'Score submitted! 🎉';
+        submitStatus.className = 'success';
+        submitStatus.classList.remove('hidden');
+        submitBtn.textContent = '✅ Submitted!';
+        
+    } catch (error) {
+        submitStatus.textContent = error.message || 'Failed to submit. Try again.';
+        submitStatus.className = 'error';
+        submitStatus.classList.remove('hidden');
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🏆 Submit Score';
+    }
+}
+
+// Submit score with player ID for tracking
+async function submitScoreWithPlayerId(playerName, playerScore) {
+    const currentPlayerId = getPlayerId();
+    
+    try {
+        const response = await fetch(LEADERBOARD_API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                playerName: playerName,
+                score: playerScore,
+                playerId: currentPlayerId
+            }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to submit score');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        throw error;
+    }
+}
+
+// Restart from game over
+function restartFromGameOver() {
+    document.getElementById('game-over-overlay').classList.add('hidden');
     startGame();
 }
 
@@ -1114,6 +1664,7 @@ function saveGameSession() {
             spawnInterval: spawnInterval,
             difficultyTimer: difficultyTimer,
             gameStartTime: gameStartTime,
+            lives: lives,
             savedAt: Date.now()
         };
         localStorage.setItem(STORAGE_KEYS.SAVED_SESSION, JSON.stringify(session));
@@ -1185,14 +1736,27 @@ function continueGame() {
     spawnInterval = session.spawnInterval || 1500;
     difficultyTimer = session.difficultyTimer || 0;
     gameStartTime = session.gameStartTime || Date.now();
+    lives = session.lives || MAX_LIVES;
     
     // Reset runtime state
     fireworks = [];
     particles = [];
     floatingTexts = [];
+    powerups = [];
     spawnTimer = 0;
     
+    // Reset active effects
+    activeEffects = {
+        shield: false,
+        shieldTimer: 0,
+        timeFreeze: false,
+        timeFreezeTimer: 0,
+        multiPop: false,
+        multiPopTimer: 0
+    };
+    
     updateUI();
+    updateLivesDisplay();
     
     // Initialize audio context on first user interaction
     initAudioContext();
@@ -1226,8 +1790,14 @@ function init() {
     // Load saved high score
     loadHighScore();
     
+    // Initialize player ID
+    getPlayerId();
+    
     // Check for saved session
     checkSavedSession();
+    
+    // Initial lives display
+    updateLivesDisplay();
     
     // Event listeners
     canvas.addEventListener('click', handleClick);
@@ -1240,6 +1810,26 @@ function init() {
     const continueBtn = document.getElementById('continue-btn');
     if (continueBtn) {
         continueBtn.addEventListener('click', continueGame);
+    }
+    
+    // Game over event listeners
+    const gameOverRestartBtn = document.getElementById('game-over-restart-btn');
+    if (gameOverRestartBtn) {
+        gameOverRestartBtn.addEventListener('click', restartFromGameOver);
+    }
+    
+    const gameOverSubmitBtn = document.getElementById('game-over-submit-btn');
+    if (gameOverSubmitBtn) {
+        gameOverSubmitBtn.addEventListener('click', handleGameOverSubmit);
+    }
+    
+    const gameOverNameInput = document.getElementById('game-over-player-name');
+    if (gameOverNameInput) {
+        gameOverNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleGameOverSubmit();
+            }
+        });
     }
     
     // Leaderboard event listeners

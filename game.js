@@ -69,6 +69,15 @@ const sounds = {
     music: null
 };
 let musicPlaying = false;
+let backgroundMusicSource = null;
+let backgroundMusicGain = null;
+
+// Audio volume settings
+const AUDIO_VOLUMES = {
+    MUSIC: 0.15,        // Background music - lower volume
+    EFFECTS: 0.7,       // Sound effects - boosted volume
+    EFFECTS_LOUD: 0.9   // Loud effects like bombs and combos
+};
 
 // Initialize audio context (called on first user interaction)
 function initAudioContext() {
@@ -97,6 +106,13 @@ async function loadSound(name, url) {
 async function initSounds() {
     if (!audioContext) return;
     // Try to load audio files if they exist
+    // Place your MP3 files in the 'sounds/' folder:
+    // - sounds/pop.mp3
+    // - sounds/explosion.mp3
+    // - sounds/combo.mp3
+    // - sounds/bomb.mp3
+    // - sounds/golden.mp3
+    // - sounds/music.mp3 (background music - will loop)
     await Promise.all([
         loadSound('pop', 'sounds/pop.mp3'),
         loadSound('explosion', 'sounds/explosion.mp3'),
@@ -105,10 +121,52 @@ async function initSounds() {
         loadSound('golden', 'sounds/golden.mp3'),
         loadSound('music', 'sounds/music.mp3')
     ]);
+    
+    // Start background music after loading
+    startBackgroundMusic();
+}
+
+// Start background music (loops continuously)
+function startBackgroundMusic() {
+    if (!audioContext || !sounds.music || musicPlaying) return;
+    
+    try {
+        // Stop any existing music
+        stopBackgroundMusic();
+        
+        backgroundMusicSource = audioContext.createBufferSource();
+        backgroundMusicGain = audioContext.createGain();
+        
+        backgroundMusicSource.buffer = sounds.music;
+        backgroundMusicSource.loop = true; // Loop the music
+        backgroundMusicGain.gain.value = AUDIO_VOLUMES.MUSIC;
+        
+        backgroundMusicSource.connect(backgroundMusicGain);
+        backgroundMusicGain.connect(audioContext.destination);
+        backgroundMusicSource.start();
+        
+        musicPlaying = true;
+        console.log('🎵 Background music started');
+    } catch (error) {
+        console.log('⚠️ Could not start background music:', error);
+    }
+}
+
+// Stop background music
+function stopBackgroundMusic() {
+    if (backgroundMusicSource) {
+        try {
+            backgroundMusicSource.stop();
+        } catch (e) {
+            // Ignore if already stopped
+        }
+        backgroundMusicSource = null;
+    }
+    musicPlaying = false;
 }
 
 // Play sound (with fallback to synthesized sounds)
-function playSound(name, volume = 0.5) {
+function playSound(name, volume = AUDIO_VOLUMES.EFFECTS) {
     if (!audioContext) return;
     
     // Ensure audio context is resumed (required after user interaction)
@@ -727,34 +785,34 @@ class PowerUp {
                     lives++;
                     updateLivesDisplay();
                     floatingTexts.push(new FloatingText(this.x, this.y, '+1 ❤️', 'rgba(0, 255, 100, 1)'));
-                    playSound('golden', 0.4);
+                    playSound('golden', AUDIO_VOLUMES.EFFECTS);
                 } else {
                     // Already max lives, give bonus points
                     const bonus = 500;
                     score += bonus;
                     floatingTexts.push(new FloatingText(this.x, this.y, `+${bonus} MAX HP!`, 'rgba(0, 255, 100, 1)'));
-                    playSound('combo', 0.4);
+                    playSound('combo', AUDIO_VOLUMES.EFFECTS_LOUD);
                 }
                 break;
             case POWERUP_TYPES.SHIELD:
                 activeEffects.shield = true;
                 activeEffects.shieldTimer = SHIELD_DURATION;
                 floatingTexts.push(new FloatingText(this.x, this.y, '🛡️ SHIELD!', 'rgba(100, 150, 255, 1)'));
-                playSound('golden', 0.4);
+                playSound('golden', AUDIO_VOLUMES.EFFECTS);
                 triggerScreenFlash('rgba(100, 150, 255, 1)', 200);
                 break;
             case POWERUP_TYPES.TIME_FREEZE:
                 activeEffects.timeFreeze = true;
                 activeEffects.timeFreezeTimer = TIME_FREEZE_DURATION;
                 floatingTexts.push(new FloatingText(this.x, this.y, '⏰ FREEZE!', 'rgba(150, 200, 255, 1)'));
-                playSound('golden', 0.4);
+                playSound('golden', AUDIO_VOLUMES.EFFECTS);
                 triggerScreenFlash('rgba(150, 200, 255, 1)', 200);
                 break;
             case POWERUP_TYPES.MULTI_POP:
                 activeEffects.multiPop = true;
                 activeEffects.multiPopTimer = MULTI_POP_DURATION;
                 floatingTexts.push(new FloatingText(this.x, this.y, '💥 MULTI-POP!', 'rgba(255, 150, 0, 1)'));
-                playSound('combo', 0.4);
+                playSound('combo', AUDIO_VOLUMES.EFFECTS_LOUD);
                 triggerScreenFlash('rgba(255, 150, 0, 1)', 200);
                 break;
         }
@@ -1009,7 +1067,7 @@ function handleClick(e) {
                 if (activeEffects.shield) {
                     // Shield protects from bomb
                     floatingTexts.push(new FloatingText(fw.x, fw.y, '🛡️ BLOCKED!', 'rgba(100, 150, 255, 1)'));
-                    playSound('pop', 0.3);
+                    playSound('pop', AUDIO_VOLUMES.EFFECTS);
                     fw.explode(true);
                 } else {
                     // BOOM! Hit a bomb - lose a life
@@ -1018,7 +1076,7 @@ function handleClick(e) {
                     combo = 1;
                     
                     // Effects for bomb hit
-                    playSound('bomb', 0.6);
+                    playSound('bomb', AUDIO_VOLUMES.EFFECTS_LOUD);
                     triggerScreenShake(20, 500);
                     triggerScreenFlash('rgba(255, 0, 0, 1)', 300);
                     
@@ -1040,10 +1098,10 @@ function handleClick(e) {
                 
                 // Play appropriate sound
                 if (fw.isGolden) {
-                    playSound('golden', 0.5);
+                    playSound('golden', AUDIO_VOLUMES.EFFECTS);
                     triggerScreenFlash('rgba(255, 215, 0, 1)', 200);
                 } else {
-                    playSound('pop', 0.3);
+                    playSound('pop', AUDIO_VOLUMES.EFFECTS);
                 }
                 
                 // Create floating text
@@ -1061,7 +1119,7 @@ function handleClick(e) {
                 
                 // Play combo sound on milestones
                 if (combo >= 5 && combo !== oldCombo && combo % 5 === 0) {
-                    playSound('combo', 0.4);
+                    playSound('combo', AUDIO_VOLUMES.EFFECTS_LOUD);
                     triggerScreenShake(5, 100);
                 }
                 
@@ -1332,7 +1390,7 @@ function showCelebration() {
     }
     
     // Play celebration sound
-    playSound('combo', 0.5);
+    playSound('combo', AUDIO_VOLUMES.EFFECTS_LOUD);
     triggerScreenFlash('rgba(255, 215, 0, 1)', 500);
     
     // Massive celebration particles
@@ -1388,7 +1446,7 @@ function showGameOver() {
     }
     
     // Play death sound
-    playSound('bomb', 0.5);
+    playSound('bomb', AUDIO_VOLUMES.EFFECTS_LOUD);
     triggerScreenShake(15, 400);
     triggerScreenFlash('rgba(255, 0, 0, 1)', 400);
 }

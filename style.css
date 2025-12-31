@@ -599,70 +599,98 @@ body {
     color: #f44336;
 }
 
-/* Mobile responsiveness */
+/* Mobile responsiveness - reduced by 0.7 factor */
 @media (max-width: 768px) {
     #start-screen h1 {
-        font-size: 2.5em;
+        font-size: 1.8em;
     }
     
     #start-screen h2 {
-        font-size: 1.5em;
-    }
-    
-    #start-btn {
-        padding: 15px 30px;
-        font-size: 1.3em;
-    }
-    
-    #high-score-display {
-        font-size: 1.2em;
-        padding: 8px 20px;
-    }
-    
-    #continue-btn {
-        padding: 12px 30px;
         font-size: 1.1em;
     }
     
+    #start-screen p {
+        font-size: 0.9em;
+        margin: 5px 0;
+    }
+    
+    #start-btn {
+        padding: 12px 24px;
+        font-size: 1em;
+    }
+    
+    #high-score-display {
+        font-size: 0.9em;
+        padding: 6px 14px;
+        margin-bottom: 10px;
+    }
+    
+    #continue-btn {
+        padding: 10px 22px;
+        font-size: 0.9em;
+    }
+    
     #ui-overlay {
-        padding: 10px;
+        padding: 5px;
+        gap: 5px;
     }
     
     #score-display, #combo-display {
-        font-size: 18px;
-        padding: 10px 15px;
+        font-size: 14px;
+        padding: 6px 10px;
+        border-radius: 10px;
     }
     
     #lives-display {
-        font-size: 18px;
-        padding: 8px 12px;
-        letter-spacing: 3px;
+        font-size: 14px;
+        padding: 5px 8px;
+        letter-spacing: 2px;
+        border-radius: 10px;
+    }
+    
+    #right-panel {
+        gap: 5px;
     }
     
     #countdown-timer {
-        font-size: 24px;
+        font-size: 16px;
+    }
+    
+    #countdown-label {
+        font-size: 10px;
     }
     
     #countdown-display {
-        padding: 10px 15px;
+        padding: 6px 10px;
+        border-radius: 12px;
+    }
+    
+    #instructions {
+        padding: 12px 20px;
+        margin-top: 20px;
+    }
+    
+    #instructions p {
+        font-size: 0.85em;
+        margin: 4px 0;
     }
     
     #leaderboard-panel {
         min-width: unset;
         width: 95vw;
-        padding: 15px;
+        padding: 12px;
     }
     
     #leaderboard-header h2 {
-        font-size: 1.3em;
+        font-size: 1.1em;
     }
     
     #leaderboard-toggle-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 1.5em;
-        bottom: 20px;
-        right: 20px;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2em;
+        bottom: 15px;
+        right: 15px;
     }
     
     #player-name-input-container {
@@ -672,15 +700,39 @@ body {
     
     #player-name-input {
         width: 100%;
-        max-width: 250px;
+        max-width: 200px;
+        font-size: 0.9em;
+        padding: 8px 12px;
+    }
+    
+    #submit-score-btn {
+        font-size: 0.9em;
+        padding: 8px 16px;
+    }
+    
+    #celebration-overlay h1 {
+        font-size: 2em;
+    }
+    
+    #final-score {
+        font-size: 1.5em;
+        margin: 15px 0;
     }
     
     #game-over-overlay h1 {
-        font-size: 2.5em;
+        font-size: 1.8em;
     }
     
     #game-over-score {
-        font-size: 1.8em;
+        font-size: 1.3em;
+    }
+    
+    #game-over-submit-section {
+        padding: 12px;
+    }
+    
+    #game-over-submit-section p {
+        font-size: 0.9em;
     }
     
     #game-over-input-container {
@@ -690,15 +742,36 @@ body {
     
     #game-over-player-name {
         width: 100%;
-        max-width: 250px;
+        max-width: 200px;
+        font-size: 0.9em;
+        padding: 8px 12px;
+    }
+    
+    #game-over-submit-btn {
+        font-size: 0.9em;
+        padding: 8px 16px;
     }
     
     #game-over-restart-btn {
-        padding: 15px 35px;
-        font-size: 1.3em;
+        padding: 12px 28px;
+        font-size: 1em;
+        margin-top: 15px;
+    }
+    
+    #restart-btn {
+        padding: 12px 28px;
+        font-size: 1em;
     }
     
     .powerup-info {
-        font-size: 0.85em !important;
+        font-size: 0.75em !important;
+    }
+    
+    #score-submit-section {
+        padding: 12px;
+    }
+    
+    #score-submit-section p {
+        font-size: 0.9em;
     }
 }

@@ -244,6 +244,15 @@ let spawnInterval = 1500; // ms between firework spawns
 let gameStartTime = 0;
 let saveSessionTimer = 0; // Timer for periodic session saving
 
+// Mobile detection and scale factor
+function isMobile() {
+    return window.innerWidth <= 768;
+}
+
+function getMobileScale() {
+    return isMobile() ? 0.7 : 1;
+}
+
 // Set canvas size
 function resizeCanvas() {
     canvas.width = window.innerWidth;
@@ -268,11 +277,12 @@ function generateStars() {
 // Firework class
 class Firework {
     constructor() {
+        const scale = getMobileScale();
         this.x = Math.random() * (canvas.width - 100) + 50;
         this.y = canvas.height + 50;
         this.targetY = Math.random() * (canvas.height * 0.6) + 50;
         this.speed = Math.random() * 3 + 4;
-        this.radius = Math.random() * 15 + 25;
+        this.radius = (Math.random() * 15 + 25) * scale;
         this.hue = Math.random() * 360;
         
         // Type determination: 10% golden, 15% bomb, 75% normal
@@ -291,7 +301,7 @@ class Firework {
         
         // Bombs are slightly smaller and move differently
         if (this.isBomb) {
-            this.radius = Math.random() * 10 + 20;
+            this.radius = (Math.random() * 10 + 20) * scale;
             this.wobbleSpeed = Math.random() * 0.15 + 0.1;
         }
     }
@@ -611,11 +621,12 @@ function drawFloatingTexts() {
 
 class PowerUp {
     constructor(type) {
+        const scale = getMobileScale();
         this.x = Math.random() * (canvas.width - 100) + 50;
         this.y = canvas.height + 30;
         this.targetY = Math.random() * (canvas.height * 0.5) + 100;
         this.speed = Math.random() * 2 + 2;
-        this.radius = 25;
+        this.radius = 25 * scale;
         this.type = type;
         this.alive = true;
         this.pulsePhase = Math.random() * Math.PI * 2;
@@ -826,31 +837,34 @@ function updateActiveEffects(deltaTime) {
 
 // Draw active effects indicators
 function drawActiveEffects() {
-    let yOffset = 80;
-    const x = 20;
+    const scale = getMobileScale();
+    let yOffset = isMobile() ? 60 : 80;
+    const x = isMobile() ? 10 : 20;
+    const fontSize = isMobile() ? 12 : 16;
+    const lineHeight = isMobile() ? 18 : 25;
     
-    ctx.font = 'bold 16px Arial';
+    ctx.font = `bold ${fontSize}px Arial`;
     ctx.textAlign = 'left';
     
     if (activeEffects.shield) {
         const timeLeft = Math.ceil(activeEffects.shieldTimer / 1000);
         ctx.fillStyle = 'rgba(100, 150, 255, 0.9)';
         ctx.fillText(`🛡️ Shield: ${timeLeft}s`, x, yOffset);
-        yOffset += 25;
+        yOffset += lineHeight;
     }
     
     if (activeEffects.timeFreeze) {
         const timeLeft = Math.ceil(activeEffects.timeFreezeTimer / 1000);
         ctx.fillStyle = 'rgba(150, 200, 255, 0.9)';
         ctx.fillText(`⏰ Freeze: ${timeLeft}s`, x, yOffset);
-        yOffset += 25;
+        yOffset += lineHeight;
     }
     
     if (activeEffects.multiPop) {
         const timeLeft = Math.ceil(activeEffects.multiPopTimer / 1000);
         ctx.fillStyle = 'rgba(255, 150, 0, 0.9)';
         ctx.fillText(`💥 Multi-Pop: ${timeLeft}s`, x, yOffset);
-        yOffset += 25;
+        yOffset += lineHeight;
     }
 }
 

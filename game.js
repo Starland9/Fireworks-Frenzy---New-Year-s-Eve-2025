@@ -25,6 +25,159 @@ const SHIELD_DURATION = 5000; // 5 seconds
 const TIME_FREEZE_DURATION = 4000; // 4 seconds
 const MULTI_POP_DURATION = 6000; // 6 seconds
 
+// New Year Messages Database - Multiple Languages
+const NEW_YEAR_MESSAGES = [
+    // French
+    "Bonne année!",
+    "Année de succès!",
+    "Année de prospérité!",
+    "Santé et bonheur!",
+    "Joie et paix!",
+    
+    // English
+    "Happy New Year!",
+    "Year of success!",
+    "Year of prosperity!",
+    "Health and happiness!",
+    "Joy and peace!",
+    
+    // Spanish
+    "¡Feliz Año Nuevo!",
+    "¡Año de éxito!",
+    "¡Año de prosperidad!",
+    "¡Salud y felicidad!",
+    "¡Alegría y paz!",
+    
+    // German
+    "Frohes neues Jahr!",
+    "Jahr des Erfolgs!",
+    "Jahr des Wohlstands!",
+    "Gesundheit und Glück!",
+    
+    // Italian
+    "Buon anno!",
+    "Anno di successo!",
+    "Anno di prosperità!",
+    "Salute e felicità!",
+    
+    // Portuguese
+    "Feliz Ano Novo!",
+    "Ano de sucesso!",
+    "Ano de prosperidade!",
+    "Saúde e felicidade!",
+    
+    // Russian
+    "С новым годом!",
+    "Год успеха!",
+    "Год процветания!",
+    
+    // Japanese
+    "明けましておめでとう!",
+    "成功の年!",
+    "繁栄の年!",
+    
+    // Chinese
+    "新年快乐!",
+    "成功之年!",
+    "繁荣之年!",
+    "健康幸福!",
+    
+    // Arabic
+    "سنة جديدة سعيدة!",
+    "سنة النجاح!",
+    "سنة الازدهار!",
+    
+    // Hindi
+    "नया साल मुबारक हो!",
+    "सफलता का वर्ष!",
+    "समृद्धि का वर्ष!",
+    
+    // Korean
+    "새해 복 많이 받으세요!",
+    "성공의 해!",
+    "번영의 해!",
+    
+    // Dutch
+    "Gelukkig nieuwjaar!",
+    "Jaar van succes!",
+    "Jaar van voorspoed!",
+    
+    // Swedish
+    "Gott nytt år!",
+    "Framgångens år!",
+    "Välståndets år!",
+    
+    // Polish
+    "Szczęśliwego nowego roku!",
+    "Rok sukcesu!",
+    "Rok prosperity!",
+    
+    // Turkish
+    "Mutlu yıllar!",
+    "Başarı yılı!",
+    "Refah yılı!",
+    
+    // Greek
+    "Καλή χρονιά!",
+    "Χρόνος επιτυχίας!",
+    "Χρόνος ευημερίας!",
+    
+    // Hebrew
+    "!שנה טובה",
+    "!שנה של הצלחה",
+    
+    // Vietnamese
+    "Chúc mừng năm mới!",
+    "Năm thành công!",
+    "Năm thịnh vượng!",
+    
+    // Thai
+    "สวัสดีปีใหม่!",
+    "ปีแห่งความสำเร็จ!",
+    
+    // Indonesian
+    "Selamat Tahun Baru!",
+    "Tahun kesuksesan!",
+    "Tahun kemakmuran!",
+    
+    // Swahili
+    "Heri ya mwaka mpya!",
+    "Mwaka wa mafanikio!",
+    
+    // Norwegian
+    "Godt nytt år!",
+    "Suksessens år!",
+    
+    // Danish
+    "Godt nytår!",
+    "Succesens år!",
+    
+    // Finnish
+    "Onnellista uutta vuotta!",
+    "Menestyksen vuosi!",
+    
+    // Czech
+    "Šťastný nový rok!",
+    "Rok úspěchu!",
+    
+    // Hungarian
+    "Boldog új évet!",
+    "A siker éve!",
+    
+    // Romanian
+    "An nou fericit!",
+    "Anul succesului!",
+    
+    // Ukrainian
+    "З новим роком!",
+    "Рік успіху!"
+];
+
+// Get random New Year message
+function getRandomNewYearMessage() {
+    return NEW_YEAR_MESSAGES[Math.floor(Math.random() * NEW_YEAR_MESSAGES.length)];
+}
+
 // Power-up types
 const POWERUP_TYPES = {
     EXTRA_LIFE: 'extraLife',
@@ -1113,6 +1266,11 @@ function handleClick(e) {
                 const color = fw.isGolden ? 'rgba(255, 215, 0, 1)' : `hsla(${fw.hue}, 100%, 70%, 1)`;
                 floatingTexts.push(new FloatingText(fw.x, fw.y, `+${points}`, color));
                 
+                // Display random New Year message
+                const newYearMessage = getRandomNewYearMessage();
+                const messageColor = fw.isGolden ? 'rgba(255, 255, 255, 1)' : 'rgba(200, 255, 200, 1)';
+                floatingTexts.push(new FloatingText(fw.x, fw.y + 40, newYearMessage, messageColor));
+                
                 if (combo > 1) {
                     floatingTexts.push(new FloatingText(fw.x, fw.y - 30, `COMBO x${combo}!`, 'rgba(255, 100, 100, 1)'));
                 }
@@ -1161,6 +1319,11 @@ function handleClick(e) {
             const chainPoints = (chainFw.isGolden ? 100 : 10) * chainMultiplier;
             score += chainPoints;
             floatingTexts.push(new FloatingText(chainFw.x, chainFw.y, `+${chainPoints} CHAIN!`, 'rgba(255, 150, 0, 1)'));
+            
+            // Display random New Year message for chain explosions
+            const newYearMessage = getRandomNewYearMessage();
+            floatingTexts.push(new FloatingText(chainFw.x, chainFw.y + 40, newYearMessage, 'rgba(255, 200, 100, 1)'));
+            
             chainFw.explode(true);
         }
     }

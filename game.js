@@ -752,19 +752,25 @@ class PowerUp {
     }
 }
 
+// Power-up spawn weights (higher = more common)
+const POWERUP_WEIGHTS = {
+    [POWERUP_TYPES.EXTRA_LIFE]: 0.15,  // Rare - valuable
+    [POWERUP_TYPES.SHIELD]: 0.30,       // Common
+    [POWERUP_TYPES.TIME_FREEZE]: 0.25,  // Medium
+    [POWERUP_TYPES.MULTI_POP]: 0.30     // Common
+};
+
 // Spawn power-up with random type
 function spawnPowerUp() {
     const types = Object.values(POWERUP_TYPES);
-    // Extra life is rarer
-    const weights = [0.15, 0.3, 0.25, 0.3]; // extraLife, shield, timeFreeze, multiPop
     const rand = Math.random();
     let cumulative = 0;
     let selectedType = types[0];
     
-    for (let i = 0; i < types.length; i++) {
-        cumulative += weights[i];
+    for (const type of types) {
+        cumulative += POWERUP_WEIGHTS[type];
         if (rand < cumulative) {
-            selectedType = types[i];
+            selectedType = type;
             break;
         }
     }
@@ -1050,12 +1056,14 @@ function handleClick(e) {
                 
                 // Multi-pop: chain explosion to nearby fireworks
                 if (activeEffects.multiPop) {
+                    const chainRadius = 150;
+                    const chainRadiusSq = chainRadius * chainRadius;
                     for (let j = fireworks.length - 1; j >= 0; j--) {
                         if (j !== i && !fireworks[j].exploding && !fireworks[j].isBomb) {
                             const dx = fireworks[j].x - fw.x;
                             const dy = fireworks[j].y - fw.y;
-                            const dist = Math.sqrt(dx * dx + dy * dy);
-                            if (dist < 150) {
+                            const distSq = dx * dx + dy * dy;
+                            if (distSq < chainRadiusSq) {
                                 fireworksToExplode.push(j);
                             }
                         }
@@ -1072,7 +1080,8 @@ function handleClick(e) {
     for (const idx of fireworksToExplode) {
         if (fireworks[idx] && !fireworks[idx].exploding) {
             const chainFw = fireworks[idx];
-            const chainPoints = (chainFw.isGolden ? 100 : 10) * Math.floor(combo / 2);
+            const chainMultiplier = Math.max(1, Math.floor(combo / 2));
+            const chainPoints = (chainFw.isGolden ? 100 : 10) * chainMultiplier;
             score += chainPoints;
             floatingTexts.push(new FloatingText(chainFw.x, chainFw.y, `+${chainPoints} CHAIN!`, 'rgba(255, 150, 0, 1)'));
             chainFw.explode(true);
@@ -1410,36 +1419,6 @@ async function handleGameOverSubmit() {
     }
 }
 
-// Submit score with player ID for tracking
-async function submitScoreWithPlayerId(playerName, playerScore) {
-    const currentPlayerId = getPlayerId();
-    
-    try {
-        const response = await fetch(LEADERBOARD_API, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                playerName: playerName,
-                score: playerScore,
-                playerId: currentPlayerId
-            }),
-        });
-        
-        const data = await response.json();
-        
-        if (!response.ok) {
-            throw new Error(data.error || 'Failed to submit score');
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('Error submitting score:', error);
-        throw error;
-    }
-}
-
 // Restart from game over
 function restartFromGameOver() {
     document.getElementById('game-over-overlay').classList.add('hidden');
@@ -1478,6 +1457,36 @@ async function submitScore(playerName, playerScore) {
             body: JSON.stringify({
                 playerName: playerName,
                 score: playerScore,
+            }),
+        });
+        
+        const data = await response.json();
+        
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to submit score');
+        }
+        
+        return data;
+    } catch (error) {
+        console.error('Error submitting score:', error);
+        throw error;
+    }
+}
+
+// Submit score with player ID for tracking
+async function submitScoreWithPlayerId(playerName, playerScore) {
+    const currentPlayerId = getPlayerId();
+    
+    try {
+        const response = await fetch(LEADERBOARD_API, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                playerName: playerName,
+                score: playerScore,
+                playerId: currentPlayerId
             }),
         });
         

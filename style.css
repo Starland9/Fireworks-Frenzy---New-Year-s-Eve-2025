@@ -599,6 +599,267 @@ body {
     color: #f44336;
 }
 
+/* Tutorial Overlay Styles */
+#tutorial-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.92);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 150;
+    text-align: center;
+    color: white;
+}
+
+#tutorial-content {
+    max-width: 90%;
+    width: 400px;
+}
+
+.tutorial-step {
+    animation: fadeInScale 0.5s ease;
+}
+
+@keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.tutorial-step h2 {
+    font-size: 1.8em;
+    margin: 20px 0 15px;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.8);
+}
+
+.tutorial-step p {
+    font-size: 1.2em;
+    color: #ddd;
+    line-height: 1.6;
+    margin: 10px 0;
+}
+
+.tutorial-hint {
+    margin-top: 30px;
+    font-size: 0.9em;
+    color: #888;
+    animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+.tutorial-animation {
+    height: 180px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+/* Demo Firework */
+.demo-firework {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #ff6b6b, #ff3366);
+    border-radius: 50%;
+    box-shadow: 0 0 40px rgba(255, 107, 107, 0.8);
+    animation: floatUpDown 2s ease-in-out infinite;
+}
+
+.demo-firework.golden {
+    background: radial-gradient(circle, #ffd700, #ff8c00);
+    box-shadow: 0 0 50px rgba(255, 215, 0, 0.9);
+}
+
+@keyframes floatUpDown {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-20px); }
+}
+
+/* Pointing Finger Animation */
+.pointing-finger {
+    position: absolute;
+    font-size: 3em;
+    animation: tapMotion 1s ease-in-out infinite;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+}
+
+.pointing-finger.golden-finger {
+    animation: tapMotion 1s ease-in-out infinite, goldenGlow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes tapMotion {
+    0%, 100% { transform: translateY(30px) scale(1); }
+    50% { transform: translateY(0) scale(0.9); }
+}
+
+@keyframes goldenGlow {
+    from { filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5)); }
+    to { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)); }
+}
+
+.sparkle-effect {
+    position: absolute;
+    font-size: 2em;
+    top: 20px;
+    right: 80px;
+    animation: sparkle 0.8s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+    0%, 100% { opacity: 0; transform: scale(0.5) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1.2) rotate(180deg); }
+}
+
+/* Demo Bomb */
+.demo-bomb {
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, #444, #222);
+    border-radius: 50%;
+    box-shadow: 0 0 30px rgba(100, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.5em;
+    animation: bombPulse 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes bombPulse {
+    from { box-shadow: 0 0 30px rgba(255, 0, 0, 0.4); }
+    to { box-shadow: 0 0 50px rgba(255, 0, 0, 0.8); }
+}
+
+.warning-finger {
+    position: absolute;
+    font-size: 3em;
+    animation: shakeNo 0.5s ease-in-out infinite;
+    right: 60px;
+}
+
+@keyframes shakeNo {
+    0%, 100% { transform: rotate(-10deg); }
+    50% { transform: rotate(10deg); }
+}
+
+.danger-effect {
+    position: absolute;
+    font-size: 2em;
+    left: 60px;
+    animation: dangerFlash 0.3s ease-in-out infinite alternate;
+}
+
+@keyframes dangerFlash {
+    from { opacity: 0.3; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1.2); }
+}
+
+/* Combo Demo */
+.combo-demo {
+    flex-direction: column;
+}
+
+.combo-fingers {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.combo-fingers span {
+    font-size: 2.5em;
+    animation: sequentialTap 1.5s ease-in-out infinite;
+}
+
+.finger-1 { animation-delay: 0s; }
+.finger-2 { animation-delay: 0.3s; }
+.finger-3 { animation-delay: 0.6s; }
+
+@keyframes sequentialTap {
+    0%, 20%, 100% { transform: translateY(0); opacity: 0.5; }
+    10% { transform: translateY(-20px); opacity: 1; }
+}
+
+.combo-text {
+    font-size: 1.5em;
+    color: #ff6b6b;
+    font-weight: bold;
+    animation: comboGrow 0.5s ease-in-out infinite alternate;
+    text-shadow: 0 0 20px rgba(255, 100, 100, 0.8);
+}
+
+@keyframes comboGrow {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+}
+
+/* Ready Demo */
+.ready-demo {
+    flex-direction: column;
+}
+
+.ready-text {
+    font-size: 2.5em;
+    animation: readyPulse 1s ease-in-out infinite;
+    text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+}
+
+@keyframes readyPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.hearts-display {
+    font-size: 2em;
+    margin-top: 15px;
+    letter-spacing: 10px;
+}
+
+#tutorial-start-btn {
+    margin-top: 25px;
+    padding: 18px 40px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(135deg, #4caf50, #45a049);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(76, 175, 80, 0.4);
+    animation: pulse 2s infinite;
+}
+
+#tutorial-start-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 15px 40px rgba(76, 175, 80, 0.6);
+}
+
+#skip-tutorial-btn {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    padding: 10px 20px;
+    font-size: 1em;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 25px;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#skip-tutorial-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
 /* Mobile responsiveness - reduced by 0.7 factor */
 @media (max-width: 768px) {
     #start-screen h1 {
@@ -772,6 +1033,60 @@ body {
     }
     
     #score-submit-section p {
+        font-size: 0.9em;
+    }
+    
+    /* Tutorial Mobile Styles */
+    .tutorial-step h2 {
+        font-size: 1.3em;
+    }
+    
+    .tutorial-step p {
+        font-size: 1em;
+    }
+    
+    .tutorial-animation {
+        height: 140px;
+    }
+    
+    .demo-firework, .demo-bomb {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .pointing-finger {
+        font-size: 2.2em;
+    }
+    
+    .warning-finger {
+        font-size: 2.2em;
+    }
+    
+    .combo-fingers span {
+        font-size: 2em;
+    }
+    
+    .combo-text {
+        font-size: 1.2em;
+    }
+    
+    .ready-text {
+        font-size: 1.8em;
+    }
+    
+    .hearts-display {
+        font-size: 1.5em;
+    }
+    
+    #tutorial-start-btn {
+        padding: 14px 30px;
+        font-size: 1.2em;
+    }
+    
+    #skip-tutorial-btn {
+        bottom: 20px;
+        right: 20px;
+        padding: 8px 15px;
         font-size: 0.9em;
     }
 }
